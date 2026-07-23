@@ -1,4 +1,9 @@
 ---
+// Faithful recreation of the PS3/PS5-style XMB navigation screen referenced
+// by the user (collectui.com navigation-ui-design-inspiration/21793fa2...):
+// a horizontal row of icons where the focused one enlarges + glows white,
+// with a detail panel below showing the current section's title/description
+// and the sibling sections as a plain list.
 const base = import.meta.env.BASE_URL;
 
 const ICONS = {
@@ -10,121 +15,228 @@ const ICONS = {
 };
 
 const links = [
-  { href: `${base}`, label: "Overview", icon: "overview" },
-  { href: `${base}trends/`, label: "Tendances", icon: "trends" },
-  { href: `${base}patterns/`, label: "Patterns", icon: "patterns" },
-  { href: `${base}sound/`, label: "Son", icon: "sound" },
-  { href: `${base}records/`, label: "Records", icon: "records" },
+  { href: `${base}`, label: "Overview", icon: "overview", desc: "Vue d'ensemble de ton écoute" },
+  { href: `${base}trends/`, label: "Tendances", icon: "trends", desc: "Évolution de tes écoutes dans le temps" },
+  { href: `${base}patterns/`, label: "Patterns", icon: "patterns", desc: "Tes habitudes d'écoute au fil de la semaine" },
+  { href: `${base}sound/`, label: "Son", icon: "sound", desc: "Genres et ambiance de ta musique" },
+  { href: `${base}records/`, label: "Records", icon: "records", desc: "Tes records et comportements d'écoute" },
 ] as const;
+
 const currentPath = Astro.url.pathname;
+const current = links.find((l) => l.href === currentPath) ?? links[0];
+const siblings = links.filter((l) => l.href !== current.href);
+
+function iconSvg(icon: keyof typeof ICONS): string {
+  return `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6">${ICONS[icon]}</svg>`;
+}
 ---
 
-<nav class="section-nav">
-  <a class="brand" href={base}>SPOTlightIFY</a>
-  <ul>
-    {
-      links.map((link) => {
-        const active = currentPath === link.href;
-        return (
-          <li>
-            <a class="nav-item" href={link.href} aria-current={active ? "page" : undefined}>
-              <span class="nav-icon" set:html={`<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6">${ICONS[link.icon]}</svg>`} />
-              <span class="nav-label">{link.label}</span>
+<nav class="ps-nav">
+  <div class="ps-nav-bg" aria-hidden="true"></div>
+
+  <div class="ps-nav-inner">
+    <a class="brand" href={base}>SPOTlightIFY</a>
+
+    <div class="ps-icon-row">
+      {
+        links.map((link) => {
+          const active = currentPath === link.href;
+          return (
+            <a href={link.href} class="ps-icon-btn" aria-current={active ? "page" : undefined} title={link.label}>
+              <span class="ps-icon" set:html={iconSvg(link.icon)} />
             </a>
-          </li>
-        );
-      })
-    }
-  </ul>
+          );
+        })
+      }
+    </div>
+
+    <div class="ps-detail">
+      <div class="ps-current">
+        <span class="ps-current-icon" set:html={iconSvg(current.icon)} />
+        <div>
+          <h2 class="ps-current-title">{current.label}</h2>
+          <p class="ps-current-desc">{current.desc}</p>
+        </div>
+      </div>
+
+      <div class="ps-divider"></div>
+
+      <ul class="ps-sublist">
+        {
+          siblings.map((link) => (
+            <li>
+              <a href={link.href} class="ps-sub-item">
+                <span class="ps-sub-icon" set:html={iconSvg(link.icon)} />
+                <span>{link.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
 </nav>
 
 <style>
-  .section-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .ps-nav {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .ps-nav-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(115deg, transparent 30%, color-mix(in srgb, var(--color-accent-glow) 22%, transparent) 48%, transparent 66%),
+      radial-gradient(ellipse 80% 60% at 30% 0%, color-mix(in srgb, var(--color-accent-glow) 30%, transparent) 0%, transparent 65%),
+      linear-gradient(180deg, #123a63 0%, #0a2340 55%, var(--color-page) 100%);
+  }
+
+  .ps-nav-inner {
     max-width: 960px;
     margin: 0 auto;
-    padding: 1.5rem;
-    gap: 1rem;
-    flex-wrap: wrap;
+    padding: 1.5rem 1.5rem 0;
   }
 
   .brand {
+    display: block;
     font-family: var(--font-display);
     font-weight: 700;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 0.9rem;
     letter-spacing: -0.01em;
+    color: var(--color-text-muted);
+    margin-bottom: 2.5rem;
   }
 
-  .section-nav ul {
-    list-style: none;
+  .ps-icon-row {
     display: flex;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0.4rem;
-    background: var(--color-card);
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    gap: 2.5rem;
+    margin-bottom: 1.75rem;
   }
 
-  .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    text-decoration: none;
-    padding: 0.5rem 0.7rem 0.4rem;
-    border-radius: 999px;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-  }
-
-  .nav-icon {
-    width: 1.7rem;
-    height: 1.7rem;
-    border-radius: 999px;
+  .ps-icon-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-text-faint);
-    background: transparent;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.75);
+    flex-shrink: 0;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
   }
 
-  .nav-icon svg {
-    width: 60%;
-    height: 60%;
+  .ps-icon-btn .ps-icon {
+    width: 55%;
+    height: 55%;
   }
 
-  .nav-label {
-    font-size: 0.6rem;
-    color: var(--color-text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  .ps-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  .ps-icon-btn[aria-current="page"] {
+    width: 4rem;
+    height: 4rem;
+    background: white;
+    color: #0a2340;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 30px 4px color-mix(in srgb, var(--color-accent-glow) 70%, transparent);
+  }
+
+  .ps-detail {
+    max-width: 420px;
+  }
+
+  .ps-current {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ps-current-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent-glow) 35%, transparent);
+    color: white;
+  }
+
+  .ps-current-icon svg {
+    width: 50%;
+    height: 50%;
+  }
+
+  .ps-current-title {
+    font-size: 1.5rem;
+    color: white;
+    margin: 0;
+  }
+
+  .ps-current-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0.2rem 0 0;
+  }
+
+  .ps-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.18);
+    margin: 1.1rem 0 0.85rem 4rem;
+  }
+
+  .ps-sublist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .ps-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-left: 4rem;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
     transition: color 0.2s ease;
   }
 
-  .nav-item:hover .nav-icon {
-    color: var(--color-text);
-    background: var(--color-card-hover);
+  .ps-sub-item:hover {
+    color: white;
   }
 
-  .nav-item:hover .nav-label {
-    color: var(--color-text-muted);
+  .ps-sub-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
   }
 
-  .nav-item[aria-current="page"] .nav-icon {
-    color: var(--color-page);
-    background: var(--color-accent);
-    box-shadow: 0 0 18px 2px color-mix(in srgb, var(--color-accent-glow) 65%, transparent);
-    transform: scale(1.22);
-  }
-
-  .nav-item[aria-current="page"] .nav-label {
-    color: var(--color-text);
-    font-weight: 600;
+  @media (max-width: 640px) {
+    .ps-icon-row {
+      gap: 1.25rem;
+    }
+    .ps-divider,
+    .ps-sub-item {
+      margin-left: 0;
+      padding-left: 0;
+    }
   }
 </style>
