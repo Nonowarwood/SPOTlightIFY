@@ -1,48 +1,51 @@
-@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/outfit";
 
 :root {
-  /* Surfaces — near-black with a faint green cast, like a phosphor CRT off. */
-  --color-page: #060907;
-  --color-card: #0c110d;
-  --color-card-hover: #101710;
-  --color-border: #1e2b21;
+  /* Surfaces — deep immersive blue, console-dashboard style. */
+  --color-page: #060b14;
+  --color-card: rgba(255, 255, 255, 0.045);
+  --color-card-hover: rgba(255, 255, 255, 0.075);
+  --color-border: rgba(255, 255, 255, 0.09);
 
   /* Text */
-  --color-text: #d9f5e2;
-  --color-text-muted: #7f9c8a;
-  --color-text-faint: #4a5e50;
+  --color-text: #f3f6ff;
+  --color-text-muted: #93a8c9;
+  --color-text-faint: #57698a;
 
-  /* Primary phosphor accent, used for prompts, focus states, active nav. */
-  --color-accent: #3ddc84;
+  /* Primary accent: near-white, matching the reference's glowing active-icon
+   * highlight. --color-accent-glow is the tinted blue used for soft shadows. */
+  --color-accent: #eef4ff;
+  --color-accent-glow: #5ec8fa;
 
-  /* ANSI/phosphor-terminal categorical order — never re-cycled per filter
+  /* Cool console-dashboard categorical order — never re-cycled per filter
    * state. Index 8 (red) doubles as the error color, see PassphraseGate.astro. */
-  --color-cat-1: #3ddc84; /* green */
-  --color-cat-2: #ffcc66; /* amber */
-  --color-cat-3: #5ec8f8; /* cyan */
-  --color-cat-4: #c792ea; /* magenta */
-  --color-cat-5: #82aaff; /* blue */
-  --color-cat-6: #f78c6c; /* orange */
-  --color-cat-7: #89ffc4; /* mint */
-  --color-cat-8: #ff5c5c; /* red */
+  --color-cat-1: #5ec8fa; /* sky blue */
+  --color-cat-2: #7c9cff; /* indigo */
+  --color-cat-3: #a78bfa; /* violet */
+  --color-cat-4: #f472b6; /* pink */
+  --color-cat-5: #2dd4bf; /* teal */
+  --color-cat-6: #fbbf24; /* gold */
+  --color-cat-7: #e2e8f0; /* silver */
+  --color-cat-8: #ff6b6b; /* red */
 
-  /* Sequential ramp for heatmap intensity (steps 100 -> 700) — phosphor green. */
-  --color-seq-100: #0a1410;
-  --color-seq-200: #0e2416;
-  --color-seq-300: #123a1e;
-  --color-seq-400: #155c28;
-  --color-seq-500: #1d8a3a;
-  --color-seq-600: #28c454;
-  --color-seq-700: #3ddc84;
+  /* Sequential ramp for heatmap intensity (steps 100 -> 700) — navy to sky blue. */
+  --color-seq-100: #0a1120;
+  --color-seq-200: #0f1d3a;
+  --color-seq-300: #15305c;
+  --color-seq-400: #1c4a8a;
+  --color-seq-500: #2668b8;
+  --color-seq-600: #3d92e0;
+  --color-seq-700: #5ec8fa;
 
   /* Decorative-only gradient — hero/background flourish, never data encoding */
-  --gradient-hero: linear-gradient(135deg, #3ddc84 0%, #5ec8f8 100%);
+  --gradient-hero: linear-gradient(135deg, #ffffff 0%, #5ec8fa 55%, #a78bfa 100%);
 
-  --font-display: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
-  --font-body: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Outfit Variable", "Outfit", system-ui, sans-serif;
+  --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
 
-  --radius-card: 0px;
-  --radius-bar: 0px;
+  --radius-card: 20px;
+  --radius-bar: 999px;
 
   color-scheme: dark;
 }
@@ -58,7 +61,7 @@ body {
 }
 
 body {
-  background: var(--color-page);
+  background-color: var(--color-page);
   color: var(--color-text);
   font-family: var(--font-body);
   line-height: 1.5;
@@ -66,32 +69,18 @@ body {
   position: relative;
 }
 
-/* Faint ambient phosphor wash behind every page — decorative only. */
+/* Immersive deep-blue console backdrop — fixed so it stays put across scroll,
+ * with soft violet/teal glows echoing the categorical palette. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--color-cat-1) 10%, transparent) 0%, transparent 45%),
-    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--color-cat-3) 8%, transparent) 0%, transparent 45%);
-}
-
-/* CRT scanline texture — subtle, decorative, never interferes with reading. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
   z-index: -1;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    color-mix(in srgb, black 12%, transparent) 0px,
-    color-mix(in srgb, black 12%, transparent) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  opacity: 0.5;
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -10%, color-mix(in srgb, var(--color-accent-glow) 22%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, color-mix(in srgb, var(--color-cat-3) 14%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 90%, color-mix(in srgb, var(--color-cat-5) 10%, transparent) 0%, transparent 55%),
+    var(--color-page);
 }
 
 h1,
@@ -114,10 +103,6 @@ h1.page-title {
   width: fit-content;
 }
 
-h1.page-title::before {
-  content: "> ";
-}
-
 .tabular {
   font-variant-numeric: tabular-nums;
 }
@@ -131,11 +116,15 @@ a {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 1.5rem;
-  transition: border-color 0.15s ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  border-color: color-mix(in srgb, var(--color-accent-glow) 40%, var(--color-border));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 24px color-mix(in srgb, var(--color-accent-glow) 12%, transparent);
 }
 
 .page {
@@ -147,14 +136,10 @@ a {
 .section-title {
   font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
   margin-bottom: 0.75rem;
-}
-
-.section-title::before {
-  content: "› ";
-  color: var(--color-accent);
+  font-weight: 600;
 }
 
 .grid-2 {
@@ -175,31 +160,17 @@ a {
   gap: 1.25rem;
 }
 
-/* Blinking terminal cursor, e.g. after the hero number. */
-.cursor-blink {
-  display: inline-block;
-  width: 0.5em;
-  margin-left: 0.15em;
-  background: currentColor;
-  animation: cursor-blink 1s step-end infinite;
-}
-
-@keyframes cursor-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-
 /* Shared chart chrome */
 .chart-tooltip {
   position: fixed;
   pointer-events: none;
-  background: var(--color-card);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-card);
+  background: #0d1626;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
   color: var(--color-text);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px color-mix(in srgb, var(--color-accent-glow) 20%, transparent);
   z-index: 50;
   opacity: 0;
   transition: opacity 0.1s ease;
@@ -243,15 +214,11 @@ a {
 .chart-legend-swatch {
   width: 10px;
   height: 10px;
-  border-radius: 0;
+  border-radius: 3px;
   display: inline-block;
 }
 
 .empty-state {
   color: var(--color-text-faint);
   font-size: 0.85rem;
-}
-
-.empty-state::before {
-  content: "# ";
 }

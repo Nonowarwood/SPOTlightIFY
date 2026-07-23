@@ -3,26 +3,23 @@
 
 <div id="gate-overlay" class="gate-overlay">
   <div class="gate-card">
-    <p class="gate-eyebrow">spotlightify // access control</p>
-    <h1 class="gate-title">AUTHENTIFICATION REQUISE</h1>
-    <p class="gate-copy">$ entrer le mot de passe pour accéder au tableau de bord</p>
+    <p class="gate-eyebrow">SPOTlightIFY</p>
+    <h1 class="gate-title">Privé</h1>
+    <p class="gate-copy">Entre le mot de passe pour voir le tableau de bord.</p>
     <form id="gate-form" autocomplete="off">
-      <div class="gate-input-row">
-        <span class="gate-prompt">&gt;</span>
-        <input
-          id="gate-input"
-          type="password"
-          name="passphrase"
-          placeholder="mot de passe"
-          autofocus
-        />
-      </div>
-      <button type="submit">[ entrer ]</button>
+      <input
+        id="gate-input"
+        type="password"
+        name="passphrase"
+        placeholder="Mot de passe"
+        autofocus
+      />
+      <button type="submit">Entrer</button>
     </form>
-    <p id="gate-error" class="gate-error" hidden>ERREUR: mot de passe incorrect</p>
+    <p id="gate-error" class="gate-error" hidden>Mot de passe incorrect.</p>
     <label class="gate-remember">
       <input id="gate-remember" type="checkbox" checked />
-      se souvenir de moi sur cet appareil
+      Se souvenir de moi sur cet appareil
     </label>
   </div>
 </div>
@@ -86,59 +83,53 @@
   }
 
   .gate-card {
-    max-width: 420px;
+    max-width: 360px;
     width: 90%;
-    border: 1px solid var(--color-border);
-    padding: 2rem;
+    text-align: center;
     background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 2.5rem 2rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px color-mix(in srgb, var(--color-accent-glow) 12%, transparent);
   }
 
   .gate-eyebrow {
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    color: var(--color-text-faint);
-    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: 0 0 0.5rem;
   }
 
   .gate-title {
-    font-size: 1.4rem;
-    letter-spacing: 0.02em;
+    font-size: 2.5rem;
     background: var(--gradient-hero);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
 
   .gate-copy {
     color: var(--color-text-muted);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     margin: 0 0 1.5rem;
   }
 
-  .gate-input-row {
+  #gate-form {
     display: flex;
-    align-items: center;
     gap: 0.5rem;
-    border: 1px solid var(--color-border);
-    background: var(--color-page);
-    padding: 0.7rem 0.9rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .gate-input-row:focus-within {
-    border-color: var(--color-accent);
-  }
-
-  .gate-prompt {
-    color: var(--color-accent);
   }
 
   #gate-input {
     flex: 1;
-    background: transparent;
-    border: none;
-    padding: 0;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.7rem 1.1rem;
     color: var(--color-text);
     font-family: var(--font-body);
     font-size: 0.95rem;
@@ -146,23 +137,25 @@
 
   #gate-input:focus {
     outline: none;
+    border-color: var(--color-accent-glow);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-glow) 25%, transparent);
   }
 
   #gate-form button {
-    width: 100%;
-    background: transparent;
-    color: var(--color-accent);
-    border: 1px solid var(--color-accent);
-    padding: 0.65rem 1.1rem;
+    background: var(--color-accent);
+    color: var(--color-page);
+    border: none;
+    border-radius: 999px;
+    padding: 0.7rem 1.2rem;
     font-family: var(--font-body);
     font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent-glow) 40%, transparent);
+    transition: transform 0.15s ease;
   }
 
   #gate-form button:hover {
-    background: var(--color-accent);
-    color: var(--color-page);
+    transform: scale(1.04);
   }
 
   .gate-error {
@@ -174,6 +167,7 @@
   .gate-remember {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.4rem;
     margin-top: 1.25rem;
     font-size: 0.8rem;

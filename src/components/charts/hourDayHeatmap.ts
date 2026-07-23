@@ -40,7 +40,7 @@ export function renderHourDayHeatmap(container: HTMLElement, matrix: number[][])
           .attr("y", dayIdx * cellHeight)
           .attr("width", cellWidth - 2)
           .attr("height", cellHeight - 2)
-          .attr("rx", 0)
+          .attr("rx", 3)
           .attr("fill", minutes > 0 ? sequentialColor(minutes / max) : "var(--color-border)")
           .style("cursor", minutes > 0 ? "pointer" : "default");
 

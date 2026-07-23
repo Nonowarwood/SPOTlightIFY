@@ -92,32 +92,32 @@ function injectStylesOnce(): void {
   stylesInjected = true;
   const style = document.createElement("style");
   style.textContent = `
-    .top-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.65rem; }
+    .top-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
     .top-list-row {
       display: grid;
-      grid-template-columns: 1.5rem 2.5rem minmax(0, 1fr) auto;
+      grid-template-columns: 1.25rem 2.5rem minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.3rem;
-      border-left: 2px solid transparent;
-      transition: background-color 0.15s ease, border-color 0.15s ease;
+      padding: 0.4rem 0.5rem;
+      border-radius: 14px;
+      transition: background-color 0.2s ease;
     }
-    .top-list-row:hover { background: var(--color-card-hover); border-left-color: var(--accent); }
+    .top-list-row:hover { background: var(--color-card-hover); }
     .top-list-rank { color: var(--color-text-faint); font-size: 0.8rem; text-align: right; }
-    .top-list-rank::before { content: "#"; }
     .top-list-thumb {
       width: 2.5rem; height: 2.5rem; flex-shrink: 0; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 1rem;
-      border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+      box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent);
     }
-    .top-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.85); }
+    .top-list-thumb--square { border-radius: 10px; }
+    .top-list-thumb--circle { border-radius: 999px; }
+    .top-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .top-list-labels { display: flex; flex-direction: column; min-width: 0; }
     .top-list-label { font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .top-list-sublabel { font-size: 0.75rem; color: var(--color-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .top-list-sublabel::before { content: "// "; }
-    .top-list-bar-track { grid-column: 2 / -1; height: 3px; background: var(--color-border); overflow: hidden; }
-    .top-list-bar { display: block; height: 100%; transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+    .top-list-bar-track { grid-column: 2 / -1; height: 4px; background: var(--color-border); border-radius: var(--radius-bar); overflow: hidden; }
+    .top-list-bar { display: block; height: 100%; border-radius: var(--radius-bar); transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
     .top-list-value { font-size: 0.8rem; color: var(--color-text-muted); }
   `;
   document.head.appendChild(style);

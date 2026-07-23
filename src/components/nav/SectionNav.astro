@@ -1,28 +1,39 @@
 ---
 const base = import.meta.env.BASE_URL;
+
+const ICONS = {
+  overview: `<rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5" rx="2"/><rect x="13.5" y="10" width="7.5" height="11" rx="2"/><rect x="3" y="14" width="7.5" height="7" rx="2"/>`,
+  trends: `<polyline points="3,17 9,11 13,15 21,7" fill="none"/><polyline points="15,7 21,7 21,13" fill="none"/>`,
+  patterns: `<rect x="3" y="3" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="3" width="4.5" height="4.5" rx="1.2"/><rect x="16.5" y="3" width="4.5" height="4.5" rx="1.2"/><rect x="3" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="16.5" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="3" y="16.5" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="16.5" width="4.5" height="4.5" rx="1.2"/><rect x="16.5" y="16.5" width="4.5" height="4.5" rx="1.2"/>`,
+  sound: `<line x1="4" y1="9" x2="4" y2="15" stroke-linecap="round"/><line x1="9" y1="5" x2="9" y2="19" stroke-linecap="round"/><line x1="14" y1="2" x2="14" y2="22" stroke-linecap="round"/><line x1="19" y1="6" x2="19" y2="18" stroke-linecap="round"/>`,
+  records: `<path d="M7 4h10v4.5a5 5 0 0 1-10 0V4z" fill="none"/><path d="M7 5H4.5a2.2 2.2 0 0 0 2.2 3.3" fill="none" stroke-linecap="round"/><path d="M17 5h2.5a2.2 2.2 0 0 1-2.2 3.3" fill="none" stroke-linecap="round"/><path d="M12 13.5v4" fill="none" stroke-linecap="round"/><path d="M8.5 20.5h7" fill="none" stroke-linecap="round"/>`,
+};
+
 const links = [
-  { href: `${base}`, label: "overview" },
-  { href: `${base}trends/`, label: "tendances" },
-  { href: `${base}patterns/`, label: "patterns" },
-  { href: `${base}sound/`, label: "son" },
-  { href: `${base}records/`, label: "records" },
-];
+  { href: `${base}`, label: "Overview", icon: "overview" },
+  { href: `${base}trends/`, label: "Tendances", icon: "trends" },
+  { href: `${base}patterns/`, label: "Patterns", icon: "patterns" },
+  { href: `${base}sound/`, label: "Son", icon: "sound" },
+  { href: `${base}records/`, label: "Records", icon: "records" },
+] as const;
 const currentPath = Astro.url.pathname;
 ---
 
 <nav class="section-nav">
-  <a class="brand" href={base}>
-    <span class="brand-prompt">~/</span>SPOTlightIFY
-  </a>
+  <a class="brand" href={base}>SPOTlightIFY</a>
   <ul>
     {
-      links.map((link) => (
-        <li>
-          <a href={link.href} aria-current={currentPath === link.href ? "page" : undefined}>
-            [{link.label}]
-          </a>
-        </li>
-      ))
+      links.map((link) => {
+        const active = currentPath === link.href;
+        return (
+          <li>
+            <a class="nav-item" href={link.href} aria-current={active ? "page" : undefined}>
+              <span class="nav-icon" set:html={`<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6">${ICONS[link.icon]}</svg>`} />
+              <span class="nav-label">{link.label}</span>
+            </a>
+          </li>
+        );
+      })
     }
   </ul>
 </nav>
@@ -36,41 +47,84 @@ const currentPath = Astro.url.pathname;
     margin: 0 auto;
     padding: 1.5rem;
     gap: 1rem;
-    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
   }
 
   .brand {
+    font-family: var(--font-display);
     font-weight: 700;
     text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 1rem;
     letter-spacing: -0.01em;
-  }
-
-  .brand-prompt {
-    color: var(--color-accent);
   }
 
   .section-nav ul {
     list-style: none;
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
     margin: 0;
-    padding: 0;
-    flex-wrap: wrap;
+    padding: 0.4rem;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 
-  .section-nav a {
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
     text-decoration: none;
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    transition: color 0.15s ease;
+    padding: 0.5rem 0.7rem 0.4rem;
+    border-radius: 999px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
   }
 
-  .section-nav a:hover {
+  .nav-icon {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-faint);
+    background: transparent;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .nav-icon svg {
+    width: 60%;
+    height: 60%;
+  }
+
+  .nav-label {
+    font-size: 0.6rem;
+    color: var(--color-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: color 0.2s ease;
+  }
+
+  .nav-item:hover .nav-icon {
     color: var(--color-text);
+    background: var(--color-card-hover);
   }
 
-  .section-nav a[aria-current="page"] {
-    color: var(--color-accent);
+  .nav-item:hover .nav-label {
+    color: var(--color-text-muted);
+  }
+
+  .nav-item[aria-current="page"] .nav-icon {
+    color: var(--color-page);
+    background: var(--color-accent);
+    box-shadow: 0 0 18px 2px color-mix(in srgb, var(--color-accent-glow) 65%, transparent);
+    transform: scale(1.22);
+  }
+
+  .nav-item[aria-current="page"] .nav-label {
+    color: var(--color-text);
+    font-weight: 600;
   }
 </style>
