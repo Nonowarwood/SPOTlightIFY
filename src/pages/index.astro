@@ -8,6 +8,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <p class="section-title">Temps d'écoute total</p>
     <p id="hero-number" class="hero-number tabular">—</p>
     <p id="hero-sub" class="hero-sub"></p>
+    <p id="coverage-note" class="coverage-note" hidden></p>
   </section>
 
   <section class="stack">
@@ -23,17 +24,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
 
     <div class="card">
-      <p class="section-title">Top artistes (30 derniers jours)</p>
+      <p id="top-artists-label" class="section-title">Top artistes</p>
       <div id="top-artists"></div>
     </div>
 
     <div class="grid-2">
       <div class="card">
-        <p class="section-title">Top titres (30 derniers jours)</p>
+        <p id="top-tracks-label" class="section-title">Top titres</p>
         <div id="top-tracks"></div>
       </div>
       <div class="card">
-        <p class="section-title">Top albums (30 derniers jours)</p>
+        <p id="top-albums-label" class="section-title">Top albums</p>
         <div id="top-albums"></div>
       </div>
     </div>
@@ -100,6 +101,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     color: var(--color-text-muted);
     font-size: 0.9rem;
     margin-top: 0.5rem;
+  }
+
+  .coverage-note {
+    color: var(--color-text-faint);
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+    max-width: 42ch;
   }
 
   .stat-value {
@@ -175,6 +183,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     document.getElementById("stat-tracks")!.textContent = formatNumber(data.uniqueTracks);
     document.getElementById("stat-artists")!.textContent = formatNumber(data.uniqueArtists);
+
+    // "30 derniers jours" is only honest once the tracker has actually been
+    // running that long — otherwise it silently means "since tracking started"
+    // and looks like missing/wrong data next to Spotify's own lifetime stats.
+    const coverageDays = data.firstPlayDate ? (Date.now() - Date.parse(data.firstPlayDate)) / 86_400_000 : null;
+
+    const windowSuffix =
+      coverageDays === null
+        ? ""
+        : coverageDays >= 30
+          ? " (30 derniers jours)"
+          : coverageDays >= 1
+            ? ` (depuis le début du suivi — ${Math.floor(coverageDays)} j)`
+            : ` (depuis le début du suivi — ${Math.max(1, Math.round(coverageDays * 24))} h)`;
+
+    document.getElementById("top-artists-label")!.textContent = `Top artistes${windowSuffix}`;
+    document.getElementById("top-tracks-label")!.textContent = `Top titres${windowSuffix}`;
+    document.getElementById("top-albums-label")!.textContent = `Top albums${windowSuffix}`;
+
+    if (coverageDays !== null && coverageDays < 30) {
+      const note = document.getElementById("coverage-note")!;
+      note.hidden = false;
+      note.textContent =
+        'Ce total ne reflète que le suivi précis démarré récemment — pas ton historique Spotify complet. ' +
+        'Regarde "Aperçu longue durée" plus bas pour un classement basé sur tout ton historique, ' +
+        "et importe ton export Spotify pour des stats précises sur le long terme.";
+    }
 
     const w = data.windows.last30d;
     renderTopList(
