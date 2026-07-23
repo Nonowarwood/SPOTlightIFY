@@ -1,5 +1,5 @@
 @import "@fontsource-variable/inter";
-@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/sora";
 
 :root {
   /* Surfaces — the XMB navigation screen's deep-blue universe, lightened:
@@ -43,7 +43,7 @@
   /* Decorative-only gradient — highlight cards, never data encoding */
   --gradient-hero: linear-gradient(135deg, #8fd7ff 0%, #b39dfc 100%);
 
-  --font-display: "Outfit Variable", "Outfit", system-ui, sans-serif;
+  --font-display: "Sora Variable", "Sora", system-ui, sans-serif;
   --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
 
   --radius-card: 24px;
