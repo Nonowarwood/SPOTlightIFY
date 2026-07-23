@@ -1,5 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
-import type { ArtistGenreCache, RawPlay } from "./lib/types.ts";
+import type { AlbumImageCache, ArtistGenreCache, ArtistImageCache, RawPlay } from "./lib/types.ts";
 
 async function readJsonlDir(dirPath: string): Promise<RawPlay[]> {
   let entries: string[];
@@ -24,6 +24,17 @@ async function readJsonlDir(dirPath: string): Promise<RawPlay[]> {
 export interface ParsedData {
   plays: RawPlay[];
   genreCache: ArtistGenreCache;
+  artistImageCache: ArtistImageCache;
+  albumImageCache: AlbumImageCache;
+}
+
+async function readJsonCache<T>(path: string, fallback: T): Promise<T> {
+  try {
+    return JSON.parse(await readFile(path, "utf8")) as T;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    return fallback;
+  }
 }
 
 /**
@@ -45,14 +56,15 @@ export async function parseRawData(dataRoot: string): Promise<ParsedData> {
   }
   plays.sort((a, b) => a.played_at.localeCompare(b.played_at));
 
-  let genreCache: ArtistGenreCache = {};
-  try {
-    genreCache = JSON.parse(
-      await readFile(`${dataRoot}/raw/cache/artist_genres.json`, "utf8"),
-    ) as ArtistGenreCache;
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
-  }
+  const genreCache = await readJsonCache<ArtistGenreCache>(`${dataRoot}/raw/cache/artist_genres.json`, {});
+  const artistImageCache = await readJsonCache<ArtistImageCache>(
+    `${dataRoot}/raw/cache/artist_images.json`,
+    {},
+  );
+  const albumImageCache = await readJsonCache<AlbumImageCache>(
+    `${dataRoot}/raw/cache/album_images.json`,
+    {},
+  );
 
-  return { plays, genreCache };
+  return { plays, genreCache, artistImageCache, albumImageCache };
 }

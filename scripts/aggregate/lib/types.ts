@@ -9,6 +9,7 @@ export interface RawPlay {
   artist_name: string;
   artist_id: string | null;
   album_name: string;
+  album_id: string | null;
   ms_played: number | null;
   track_duration_ms: number;
   reason_start: string | null;
@@ -26,6 +27,43 @@ export interface ArtistGenreCache {
     genres: string[];
     fetchedAt: string;
   };
+}
+
+export interface ArtistImageCache {
+  [artistId: string]: {
+    name: string;
+    imageUrl: string | null;
+    fetchedAt: string;
+  };
+}
+
+export interface AlbumImageCache {
+  [albumId: string]: {
+    name: string;
+    imageUrl: string | null;
+    fetchedAt: string;
+  };
+}
+
+export interface TopItemRaw {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+}
+
+export interface TopTrackItemRaw extends TopItemRaw {
+  artistNames: string[];
+  albumName: string;
+  albumImageUrl: string | null;
+}
+
+/** Mirrors spotlightify-data's TopSnapshot — the daily short/medium/long_term
+ *  top-items snapshot used as an immediate approximate-history proxy. */
+export interface TopSnapshotRaw {
+  fetchedAt: string;
+  short_term: { artists: TopItemRaw[]; tracks: TopTrackItemRaw[] };
+  medium_term: { artists: TopItemRaw[]; tracks: TopTrackItemRaw[] };
+  long_term: { artists: TopItemRaw[]; tracks: TopTrackItemRaw[] };
 }
 
 /** Best-available listened duration: real ms_played for historical records,

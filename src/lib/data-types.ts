@@ -10,6 +10,7 @@ export interface RankedItem {
   name: string;
   sublabel?: string;
   minutes: number;
+  imageUrl?: string | null;
 }
 
 export interface OverviewWindow {
@@ -72,10 +73,21 @@ export interface RecordsData {
   longestSessionMinutes: number;
 }
 
+/** Immediate approximate-history proxy sourced from Spotify's own /me/top/*
+ *  rankings (short/medium/long_term), available right away — unlike the
+ *  precise per-play stats above, which only cover history since the poller
+ *  started until the full streaming-history export is imported. */
+export interface ApproxHistoryData {
+  fetchedAt: string;
+  mediumTerm: { topArtists: RankedItem[]; topTracks: RankedItem[] };
+  longTerm: { topArtists: RankedItem[]; topTracks: RankedItem[] };
+}
+
 export interface MetaData {
   generatedAt: string;
   recordCount: number;
   dateRangeStart: string | null;
   dateRangeEnd: string | null;
   soundAvailable: boolean;
+  approxHistoryAvailable: boolean;
 }

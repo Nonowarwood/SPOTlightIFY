@@ -5,9 +5,21 @@
  * local dev only. Run: npm run fixture:generate
  */
 import { mkdir, writeFile } from "node:fs/promises";
-import type { ArtistGenreCache, RawPlay } from "../lib/types.ts";
+import type {
+  AlbumImageCache,
+  ArtistGenreCache,
+  ArtistImageCache,
+  RawPlay,
+  TopSnapshotRaw,
+} from "../lib/types.ts";
 
 const OUT_DIR = ".fixture-data";
+
+/** Deterministic placeholder photos (no API key, no real Spotify data) so the
+ *  thumbnail UI can be visually tested locally. */
+function placeholderImage(seed: string): string {
+  return `https://picsum.photos/seed/${seed}/300/300`;
+}
 
 const ARTISTS: { name: string; id: string; genres: string[] }[] = [
   { name: "Nova Wren", id: "a1", genres: ["dream pop", "shoegaze"] },
@@ -28,16 +40,26 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
-function makeTracks(): { name: string; album: string; artist: (typeof ARTISTS)[number]; durationMs: number }[] {
-  const tracks: { name: string; album: string; artist: (typeof ARTISTS)[number]; durationMs: number }[] = [];
+interface FixtureTrack {
+  name: string;
+  album: string;
+  albumId: string;
+  artist: (typeof ARTISTS)[number];
+  durationMs: number;
+}
+
+function makeTracks(): FixtureTrack[] {
+  const tracks: FixtureTrack[] = [];
   const nouns = ["Static", "Harbor", "Echo", "Glass", "Ember", "Tide", "Halo", "Drift", "Hollow", "Neon"];
   const nouns2 = ["Room", "Signal", "Light", "Field", "Hour", "Shore", "Frame", "Bloom", "Wire", "Sky"];
   ARTISTS.forEach((artist) => {
     const albumName = `${pick(nouns)} ${pick(nouns2)}`;
+    const albumId = `alb-${artist.id}-${albumName.replace(/\s/g, "").toLowerCase()}`;
     for (let i = 0; i < 6; i++) {
       tracks.push({
         name: `${pick(nouns)} ${pick(nouns2)}`,
         album: albumName,
+        albumId,
         artist,
         durationMs: 150_000 + Math.floor(Math.random() * 120_000),
       });
@@ -86,6 +108,7 @@ async function main() {
         artist_name: track.artist.name,
         artist_id: track.artist.id,
         album_name: track.album,
+        album_id: track.albumId,
         ms_played: isPollerEra ? null : msPlayed,
         track_duration_ms: track.durationMs,
         reason_start: isPollerEra ? null : "trackdone",
@@ -103,8 +126,25 @@ async function main() {
   }
 
   const genreCache: ArtistGenreCache = {};
+  const artistImageCache: ArtistImageCache = {};
   for (const artist of ARTISTS) {
     genreCache[artist.id] = { name: artist.name, genres: artist.genres, fetchedAt: new Date().toISOString() };
+    artistImageCache[artist.id] = {
+      name: artist.name,
+      imageUrl: placeholderImage(artist.id),
+      fetchedAt: new Date().toISOString(),
+    };
+  }
+
+  const albumImageCache: AlbumImageCache = {};
+  for (const track of tracks) {
+    if (!(track.albumId in albumImageCache)) {
+      albumImageCache[track.albumId] = {
+        name: track.album,
+        imageUrl: placeholderImage(track.albumId),
+        fetchedAt: new Date().toISOString(),
+      };
+    }
   }
 
   const byYear = new Map<string, RawPlay[]>();
@@ -117,6 +157,7 @@ async function main() {
   await mkdir(`${OUT_DIR}/raw/historical`, { recursive: true });
   await mkdir(`${OUT_DIR}/raw/recently-played`, { recursive: true });
   await mkdir(`${OUT_DIR}/raw/cache`, { recursive: true });
+  await mkdir(`${OUT_DIR}/raw/top-snapshots`, { recursive: true });
 
   for (const [year, records] of byYear) {
     await writeFile(
@@ -134,6 +175,36 @@ async function main() {
   );
 
   await writeFile(`${OUT_DIR}/raw/cache/artist_genres.json`, JSON.stringify(genreCache, null, 2), "utf8");
+  await writeFile(`${OUT_DIR}/raw/cache/artist_images.json`, JSON.stringify(artistImageCache, null, 2), "utf8");
+  await writeFile(`${OUT_DIR}/raw/cache/album_images.json`, JSON.stringify(albumImageCache, null, 2), "utf8");
+
+  // Synthetic top-items snapshot (mirrors spotlightify-data's fetch-top-items.ts
+  // output) — reuses the same artist/track pool, ranked by a random score.
+  const rankedArtists = [...ARTISTS]
+    .sort(() => Math.random() - 0.5)
+    .map((a) => ({ id: a.id, name: a.name, imageUrl: placeholderImage(a.id) }));
+  const rankedTracks = [...tracks]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 30)
+    .map((t) => ({
+      id: `${t.artist.id}-${t.name.replace(/\s/g, "")}`,
+      name: t.name,
+      imageUrl: placeholderImage(t.albumId),
+      artistNames: [t.artist.name],
+      albumName: t.album,
+      albumImageUrl: placeholderImage(t.albumId),
+    }));
+  const topSnapshot: TopSnapshotRaw = {
+    fetchedAt: new Date().toISOString(),
+    short_term: { artists: rankedArtists.slice(0, 10), tracks: rankedTracks.slice(0, 10) },
+    medium_term: { artists: rankedArtists, tracks: rankedTracks },
+    long_term: { artists: rankedArtists, tracks: rankedTracks },
+  };
+  await writeFile(
+    `${OUT_DIR}/raw/top-snapshots/${now.toISOString().slice(0, 10)}.json`,
+    JSON.stringify(topSnapshot, null, 2),
+    "utf8",
+  );
 
   console.log(
     `Fixture written to ${OUT_DIR}/: ${historical.length} historical + ${recentlyPlayed.length} recently-played plays.`,

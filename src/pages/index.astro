@@ -4,6 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout title="Overview">
   <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
     <p class="section-title">Temps d'écoute total</p>
     <p id="hero-number" class="hero-number tabular">—</p>
     <p id="hero-sub" class="hero-sub"></p>
@@ -36,12 +37,47 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div id="top-albums"></div>
       </div>
     </div>
+
+    <div id="approx-history-section" hidden>
+      <div class="approx-header">
+        <p class="section-title">Aperçu longue durée</p>
+        <p class="approx-note">
+          Classement approximatif calculé par Spotify (pas nos stats précises minute par minute) —
+          en attendant l'import de ton historique complet.
+        </p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <p class="section-title">Top artistes · 6 derniers mois</p>
+          <div id="approx-artists-medium"></div>
+        </div>
+        <div class="card">
+          <p class="section-title">Top artistes · longue durée</p>
+          <div id="approx-artists-long"></div>
+        </div>
+      </div>
+    </div>
   </section>
 </BaseLayout>
 
 <style>
   .hero {
+    position: relative;
     padding: 3rem 0 2rem;
+    isolation: isolate;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -140px;
+    left: -80px;
+    width: 420px;
+    height: 420px;
+    background: var(--gradient-hero);
+    filter: blur(90px);
+    opacity: 0.35;
+    z-index: -1;
+    border-radius: 50%;
   }
 
   .hero-number {
@@ -63,6 +99,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     font-size: 1.8rem;
     font-family: var(--font-display);
   }
+
+  .approx-header {
+    margin-bottom: 1rem;
+  }
+
+  .approx-note {
+    color: var(--color-text-faint);
+    font-size: 0.8rem;
+    margin: 0.25rem 0 0;
+  }
 </style>
 
 <script>
@@ -70,7 +116,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   import { formatDuration, formatNumber, formatPercent } from "../lib/theme.ts";
   import { animateBigNumber } from "../components/charts/bigNumber.ts";
   import { renderTopList } from "../components/charts/topList.ts";
-  import type { OverviewData } from "../lib/data-types.ts";
+  import type { ApproxHistoryData, OverviewData } from "../lib/data-types.ts";
 
   onUnlock(async () => {
     const res = await fetch(`${import.meta.env.BASE_URL}data/overview.json`);
@@ -93,18 +139,37 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     const w = data.windows.last30d;
     renderTopList(
       document.getElementById("top-artists")!,
-      w.topArtists.map((a) => ({ label: a.name, value: a.minutes })),
+      w.topArtists.map((a) => ({ label: a.name, value: a.minutes, imageUrl: a.imageUrl })),
       (n) => `${formatNumber(n)} min`,
+      "circle",
     );
     renderTopList(
       document.getElementById("top-tracks")!,
-      w.topTracks.map((t) => ({ label: t.name, sublabel: t.sublabel, value: t.minutes })),
+      w.topTracks.map((t) => ({ label: t.name, sublabel: t.sublabel, value: t.minutes, imageUrl: t.imageUrl })),
       (n) => `${formatNumber(n)} min`,
     );
     renderTopList(
       document.getElementById("top-albums")!,
-      w.topAlbums.map((a) => ({ label: a.name, sublabel: a.sublabel, value: a.minutes })),
+      w.topAlbums.map((a) => ({ label: a.name, sublabel: a.sublabel, value: a.minutes, imageUrl: a.imageUrl })),
       (n) => `${formatNumber(n)} min`,
     );
+
+    const approxRes = await fetch(`${import.meta.env.BASE_URL}data/approx-history.json`);
+    if (approxRes.ok) {
+      const approx = (await approxRes.json()) as ApproxHistoryData;
+      document.getElementById("approx-history-section")!.hidden = false;
+      renderTopList(
+        document.getElementById("approx-artists-medium")!,
+        approx.mediumTerm.topArtists.slice(0, 8).map((a) => ({ label: a.name, imageUrl: a.imageUrl, value: a.minutes })),
+        () => "",
+        "circle",
+      );
+      renderTopList(
+        document.getElementById("approx-artists-long")!,
+        approx.longTerm.topArtists.slice(0, 8).map((a) => ({ label: a.name, imageUrl: a.imageUrl, value: a.minutes })),
+        () => "",
+        "circle",
+      );
+    }
   });
 </script>

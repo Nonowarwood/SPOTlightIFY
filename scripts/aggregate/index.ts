@@ -18,6 +18,7 @@ import { buildHeatmap } from "./heatmap.ts";
 import { buildGenres } from "./genres.ts";
 import { buildSound } from "./sound.ts";
 import { buildRecords } from "./records.ts";
+import { buildApproxHistory } from "./approx-history.ts";
 import type { MetaData } from "../../src/lib/data-types.ts";
 
 const MAX_FILE_BYTES = 3 * 1024 * 1024; // 3MB — a legitimate aggregate file should never get near this
@@ -45,15 +46,16 @@ async function main() {
 
   await mkdir(outDir, { recursive: true });
 
-  const { plays, genreCache } = await parseRawData(dataRoot);
+  const { plays, genreCache, artistImageCache, albumImageCache } = await parseRawData(dataRoot);
   console.log(`Loaded ${plays.length} deduplicated plays.`);
 
-  const overview = buildOverview(plays);
+  const overview = buildOverview(plays, { artistImageCache, albumImageCache });
   const trends = buildTrends(plays);
   const heatmap = buildHeatmap(plays);
   const genres = buildGenres(plays, genreCache);
   const sound = await buildSound(dataRoot, plays);
-  const records = buildRecords(plays);
+  const records = buildRecords(plays, albumImageCache);
+  const approxHistory = await buildApproxHistory(dataRoot);
 
   await writeJson(`${outDir}/overview.json`, overview);
   await writeJson(`${outDir}/trends.json`, trends);
@@ -62,6 +64,7 @@ async function main() {
   if (sound.available) await writeJson(`${outDir}/sound.json`, sound);
 
   await writeJson(`${outDir}/records.json`, records);
+  if (approxHistory) await writeJson(`${outDir}/approx-history.json`, approxHistory);
 
   const meta: MetaData = {
     generatedAt: new Date().toISOString(),
@@ -69,10 +72,14 @@ async function main() {
     dateRangeStart: plays[0]?.played_at ?? null,
     dateRangeEnd: plays[plays.length - 1]?.played_at ?? null,
     soundAvailable: sound.available,
+    approxHistoryAvailable: approxHistory !== null,
   };
   await writeJson(`${outDir}/meta.json`, meta);
 
-  console.log(`Wrote aggregates to ${outDir}/ (sound ${sound.available ? "available" : "unavailable"}).`);
+  console.log(
+    `Wrote aggregates to ${outDir}/ (sound ${sound.available ? "available" : "unavailable"}, ` +
+      `approx-history ${approxHistory ? "available" : "unavailable"}).`,
+  );
 }
 
 main().catch((err) => {

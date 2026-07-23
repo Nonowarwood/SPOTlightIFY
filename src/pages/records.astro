@@ -63,7 +63,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     renderTopList(
       document.getElementById("most-replayed")!,
-      data.mostReplayed.map((t) => ({ label: t.name, sublabel: t.sublabel, value: t.minutes })),
+      data.mostReplayed.map((t) => ({ label: t.name, sublabel: t.sublabel, value: t.minutes, imageUrl: t.imageUrl })),
       (n) => `${n}×`,
     );
   });

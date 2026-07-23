@@ -1,8 +1,13 @@
-import type { RawPlay } from "./lib/types.ts";
+import type { AlbumImageCache, ArtistImageCache, RawPlay } from "./lib/types.ts";
 import { effectiveMsPlayed } from "./lib/types.ts";
 import type { OverviewData, OverviewWindow, RankedItem } from "../../src/lib/data-types.ts";
 
 const TOP_N = 15;
+
+interface ImageCaches {
+  artistImageCache: ArtistImageCache;
+  albumImageCache: AlbumImageCache;
+}
 
 function topN(
   plays: RawPlay[],
@@ -22,23 +27,38 @@ function topN(
     .map(([key, { ms, sample }]) => toItem(key, ms, sample));
 }
 
-function windowFor(plays: RawPlay[], sinceMs: number | null): OverviewWindow {
+function windowFor(plays: RawPlay[], sinceMs: number | null, images: ImageCaches): OverviewWindow {
   const scoped = sinceMs === null ? plays : plays.filter((p) => Date.parse(p.played_at) >= sinceMs);
+  const { artistImageCache, albumImageCache } = images;
   return {
     topArtists: topN(
       scoped,
       (p) => p.artist_name,
-      (name, ms) => ({ name, minutes: Math.round(ms / 60000) }),
+      (name, ms, sample) => ({
+        name,
+        minutes: Math.round(ms / 60000),
+        imageUrl: sample.artist_id ? artistImageCache[sample.artist_id]?.imageUrl ?? null : null,
+      }),
     ),
     topTracks: topN(
       scoped,
       (p) => `${p.track_name}__${p.artist_name}`,
-      (_key, ms, sample) => ({ name: sample.track_name, sublabel: sample.artist_name, minutes: Math.round(ms / 60000) }),
+      (_key, ms, sample) => ({
+        name: sample.track_name,
+        sublabel: sample.artist_name,
+        minutes: Math.round(ms / 60000),
+        imageUrl: sample.album_id ? albumImageCache[sample.album_id]?.imageUrl ?? null : null,
+      }),
     ),
     topAlbums: topN(
       scoped,
       (p) => `${p.album_name}__${p.artist_name}`,
-      (_key, ms, sample) => ({ name: sample.album_name, sublabel: sample.artist_name, minutes: Math.round(ms / 60000) }),
+      (_key, ms, sample) => ({
+        name: sample.album_name,
+        sublabel: sample.artist_name,
+        minutes: Math.round(ms / 60000),
+        imageUrl: sample.album_id ? albumImageCache[sample.album_id]?.imageUrl ?? null : null,
+      }),
     ),
   };
 }
@@ -47,7 +67,7 @@ function sumMs(plays: RawPlay[]): number {
   return plays.reduce((sum, p) => sum + effectiveMsPlayed(p), 0);
 }
 
-export function buildOverview(plays: RawPlay[]): OverviewData {
+export function buildOverview(plays: RawPlay[], images: ImageCaches): OverviewData {
   const now = Date.now();
   const day = 86_400_000;
 
@@ -87,10 +107,10 @@ export function buildOverview(plays: RawPlay[]): OverviewData {
     firstPlayDate: plays[0]?.played_at ?? null,
     totalListeningDays: listeningDays,
     windows: {
-      last7d: windowFor(plays, now - 7 * day),
-      last30d: windowFor(plays, now - 30 * day),
-      last365d: windowFor(plays, now - 365 * day),
-      allTime: windowFor(plays, null),
+      last7d: windowFor(plays, now - 7 * day, images),
+      last30d: windowFor(plays, now - 30 * day, images),
+      last365d: windowFor(plays, now - 365 * day, images),
+      allTime: windowFor(plays, null, images),
     },
     deltas: {
       last7dVsPrevious7dPct: pctChange(sumMs(last7d), sumMs(prev7d)),

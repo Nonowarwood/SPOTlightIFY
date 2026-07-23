@@ -60,6 +60,19 @@ body {
   font-family: var(--font-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Faint ambient color wash behind every page — decorative only, keeps the
+ * whole site feeling like one vibrant system instead of a flat dark box. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--color-cat-7) 14%, transparent) 0%, transparent 45%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--color-cat-3) 10%, transparent) 0%, transparent 45%);
 }
 
 h1,
@@ -70,6 +83,16 @@ h3,
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
+}
+
+/* Page titles (not the hero number, which has its own bigger treatment) get a
+ * subtler gradient wash so every page reads as part of the same vibrant system. */
+h1.page-title {
+  background: var(--gradient-hero);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  width: fit-content;
 }
 
 .tabular {
@@ -85,6 +108,12 @@ a {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 1.5rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--color-cat-1) 35%, var(--color-border));
+  transform: translateY(-2px);
 }
 
 .page {

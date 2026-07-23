@@ -1,4 +1,4 @@
-import type { RawPlay } from "./lib/types.ts";
+import type { AlbumImageCache, RawPlay } from "./lib/types.ts";
 import { effectiveMsPlayed } from "./lib/types.ts";
 import type { RecordsData, RankedItem } from "../../src/lib/data-types.ts";
 
@@ -66,7 +66,7 @@ function buildDiscovery(plays: RawPlay[]): { month: string; newArtists: number; 
     .map(([month, counts]) => ({ month, ...counts }));
 }
 
-function buildMostReplayed(plays: RawPlay[]): RankedItem[] {
+function buildMostReplayed(plays: RawPlay[], albumImageCache: AlbumImageCache): RankedItem[] {
   const counts = new Map<string, { count: number; sample: RawPlay }>();
   for (const p of plays) {
     const key = `${p.track_name}__${p.artist_name}`;
@@ -77,7 +77,12 @@ function buildMostReplayed(plays: RawPlay[]): RankedItem[] {
   return [...counts.values()]
     .sort((a, b) => b.count - a.count)
     .slice(0, 15)
-    .map(({ count, sample }) => ({ name: sample.track_name, sublabel: sample.artist_name, minutes: count }));
+    .map(({ count, sample }) => ({
+      name: sample.track_name,
+      sublabel: sample.artist_name,
+      minutes: count,
+      imageUrl: sample.album_id ? albumImageCache[sample.album_id]?.imageUrl ?? null : null,
+    }));
 }
 
 function buildLongestSession(plays: RawPlay[]): number {
@@ -103,7 +108,7 @@ function buildLongestSession(plays: RawPlay[]): number {
   return Math.round(longestMs / 60000);
 }
 
-export function buildRecords(plays: RawPlay[]): RecordsData {
+export function buildRecords(plays: RawPlay[], albumImageCache: AlbumImageCache): RecordsData {
   const days = new Set(plays.map((p) => p.played_at.slice(0, 10)));
   const { longest, current } = buildStreaks(days);
 
@@ -118,7 +123,7 @@ export function buildRecords(plays: RawPlay[]): RecordsData {
     currentStreakDays: current,
     skipRate,
     discoveryByMonth: buildDiscovery(plays),
-    mostReplayed: buildMostReplayed(plays),
+    mostReplayed: buildMostReplayed(plays, albumImageCache),
     longestSessionMinutes: buildLongestSession(plays),
   };
 }
