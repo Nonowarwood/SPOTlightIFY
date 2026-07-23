@@ -38,7 +38,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
     </div>
 
-    <div id="approx-history-section" hidden>
+    <div id="approx-history-section" class="stack" hidden>
       <div class="approx-header">
         <p class="section-title">Aperçu longue durée</p>
         <p class="approx-note">
@@ -46,14 +46,28 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           en attendant l'import de ton historique complet.
         </p>
       </div>
+
+      <p class="approx-subtitle">6 derniers mois</p>
       <div class="grid-2">
         <div class="card">
-          <p class="section-title">Top artistes · 6 derniers mois</p>
+          <p class="section-title">Top artistes</p>
           <div id="approx-artists-medium"></div>
         </div>
         <div class="card">
-          <p class="section-title">Top artistes · longue durée</p>
+          <p class="section-title">Top titres</p>
+          <div id="approx-tracks-medium"></div>
+        </div>
+      </div>
+
+      <p class="approx-subtitle">Longue durée (plusieurs années)</p>
+      <div class="grid-2">
+        <div class="card">
+          <p class="section-title">Top artistes</p>
           <div id="approx-artists-long"></div>
+        </div>
+        <div class="card">
+          <p class="section-title">Top titres</p>
+          <div id="approx-tracks-long"></div>
         </div>
       </div>
     </div>
@@ -109,6 +123,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     font-size: 0.8rem;
     margin: 0.25rem 0 0;
   }
+
+  .approx-subtitle {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0.5rem 0 -0.25rem;
+  }
 </style>
 
 <script>
@@ -158,18 +179,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     if (approxRes.ok) {
       const approx = (await approxRes.json()) as ApproxHistoryData;
       document.getElementById("approx-history-section")!.hidden = false;
-      renderTopList(
-        document.getElementById("approx-artists-medium")!,
-        approx.mediumTerm.topArtists.slice(0, 8).map((a) => ({ label: a.name, imageUrl: a.imageUrl, value: a.minutes })),
-        () => "",
-        "circle",
-      );
-      renderTopList(
-        document.getElementById("approx-artists-long")!,
-        approx.longTerm.topArtists.slice(0, 8).map((a) => ({ label: a.name, imageUrl: a.imageUrl, value: a.minutes })),
-        () => "",
-        "circle",
-      );
+
+      const asItems = (items: typeof approx.mediumTerm.topArtists) =>
+        items.slice(0, 20).map((a) => ({ label: a.name, sublabel: a.sublabel, imageUrl: a.imageUrl, value: a.minutes }));
+
+      renderTopList(document.getElementById("approx-artists-medium")!, asItems(approx.mediumTerm.topArtists), () => "", "circle");
+      renderTopList(document.getElementById("approx-tracks-medium")!, asItems(approx.mediumTerm.topTracks), () => "");
+      renderTopList(document.getElementById("approx-artists-long")!, asItems(approx.longTerm.topArtists), () => "", "circle");
+      renderTopList(document.getElementById("approx-tracks-long")!, asItems(approx.longTerm.topTracks), () => "");
     }
   });
 </script>
