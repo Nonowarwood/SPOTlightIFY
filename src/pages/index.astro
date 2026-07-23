@@ -134,7 +134,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   @media (min-width: 900px) {
     .dash-grid {
-      grid-template-columns: minmax(0, 1fr) 300px;
+      grid-template-columns: minmax(0, 1fr) 340px;
     }
   }
 
@@ -240,8 +240,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   /* --- Album cover grid ---------------------------------------------------- */
   .ov-album-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1.1rem;
   }
 
   .ov-album {
@@ -349,8 +349,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     font-variant-numeric: tabular-nums;
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--color-accent) 16%, transparent);
-    color: #cbb8ff;
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    color: #a8e0ff;
   }
 
   .ov-artist-badge.is-gold {
@@ -364,7 +364,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     border-radius: var(--radius-card);
     padding: 1.75rem 1.5rem;
     text-align: center;
-    color: #221433;
+    color: #0c2038;
   }
 
   .ov-gc-number {

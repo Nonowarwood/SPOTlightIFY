@@ -2,46 +2,46 @@
 @import "@fontsource-variable/outfit";
 
 :root {
-  /* Surfaces — layered near-blacks (dashboard-reference style): a true dark
-   * page with slightly lifted solid cards, not translucent glass. */
-  --color-page: #0b0b10;
-  --color-card: #16151c;
-  --color-card-hover: #1c1b23;
-  --color-border: rgba(255, 255, 255, 0.07);
+  /* Surfaces — the XMB navigation screen's deep-blue universe, lightened:
+   * content lives in the same world as the dashboard, a notch brighter. */
+  --color-page: #0e2138;
+  --color-card: #1b3a5e;
+  --color-card-hover: #224871;
+  --color-border: rgba(255, 255, 255, 0.11);
 
   /* Text */
-  --color-text: #f4f2fa;
-  --color-text-muted: #9d98ad;
-  --color-text-faint: #605c6e;
+  --color-text: #f2f7ff;
+  --color-text-muted: #a9c3e0;
+  --color-text-faint: #7490b3;
 
-  /* Primary accent duo from the reference: purple carries the identity,
-   * amber is the counterpoint (badges, second series). */
-  --color-accent: #a78bfa;
-  --color-accent-glow: #a78bfa;
+  /* Primary accent duo: the XMB's sky-blue glow leads, amber is the
+   * counterpoint (badges, second series). */
+  --color-accent: #5ec8fa;
+  --color-accent-glow: #5ec8fa;
   --color-accent-2: #fbc65e;
 
   /* Categorical order — never re-cycled per filter state. Index 8 (red)
    * doubles as the error color, see PassphraseGate.astro. */
-  --color-cat-1: #a78bfa; /* purple */
+  --color-cat-1: #5ec8fa; /* sky blue */
   --color-cat-2: #fbc65e; /* amber */
   --color-cat-3: #f472b6; /* pink */
-  --color-cat-4: #67e8f9; /* cyan */
+  --color-cat-4: #a78bfa; /* violet */
   --color-cat-5: #6ee7a0; /* green */
-  --color-cat-6: #82aaff; /* blue */
-  --color-cat-7: #e9e4ff; /* lavender */
+  --color-cat-6: #82aaff; /* indigo */
+  --color-cat-7: #e2f1ff; /* ice */
   --color-cat-8: #ff6b6b; /* red */
 
-  /* Sequential ramp for heatmap intensity (steps 100 -> 700) — deep to bright purple. */
-  --color-seq-100: #14101f;
-  --color-seq-200: #1e1533;
-  --color-seq-300: #2a1d4d;
-  --color-seq-400: #3b2a6e;
-  --color-seq-500: #553f9e;
-  --color-seq-600: #7c5fd3;
-  --color-seq-700: #a78bfa;
+  /* Sequential ramp for heatmap intensity (steps 100 -> 700) — blue, brightened. */
+  --color-seq-100: #16324f;
+  --color-seq-200: #1c4168;
+  --color-seq-300: #235284;
+  --color-seq-400: #2d68a6;
+  --color-seq-500: #3a85c9;
+  --color-seq-600: #55a9e8;
+  --color-seq-700: #7fd0ff;
 
   /* Decorative-only gradient — highlight cards, never data encoding */
-  --gradient-hero: linear-gradient(135deg, #c9a2ff 0%, #f7b955 100%);
+  --gradient-hero: linear-gradient(135deg, #8fd7ff 0%, #b39dfc 100%);
 
   --font-display: "Outfit Variable", "Outfit", system-ui, sans-serif;
   --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
@@ -71,18 +71,17 @@ body {
   position: relative;
 }
 
-/* Near-black backdrop with faint purple depth — fixed so it stays put
- * across scroll. Deliberately quieter than before: the reference's richness
- * comes from the cards, not the background. */
+/* The XMB dashboard's blue backdrop, carried into the content screens —
+ * bright glow up top fading into depth, fixed across scroll. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(ellipse 80% 45% at 75% -10%, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 0% 100%, color-mix(in srgb, var(--color-cat-3) 6%, transparent) 0%, transparent 55%),
-    var(--color-page);
+    radial-gradient(ellipse 110% 70% at 25% -15%, #2a6db5 0%, transparent 58%),
+    radial-gradient(ellipse 70% 50% at 100% 110%, #1b4676 0%, transparent 60%),
+    linear-gradient(165deg, #143a5f 0%, var(--color-page) 55%, #0a1930 100%);
 }
 
 h1,
@@ -131,10 +130,12 @@ a {
   border-color: rgba(255, 255, 255, 0.13);
 }
 
+/* Full-bleed layout: span the viewport (with sane bounds on ultra-wide
+ * monitors) instead of a narrow centered column. */
 .page {
-  max-width: 960px;
+  max-width: 1560px;
   margin: 0 auto;
-  padding: 1.25rem 1.5rem 4rem;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2.75rem) 4rem;
 }
 
 /* Apple grouped-list section header: small caps, quiet, slightly inset. */

@@ -1,30 +1,30 @@
 // Mirrors the CSS custom properties in src/styles/global.css. Kept as plain
 // hex strings (not read from CSS) so D3 code can use them directly for SVG fills.
 
-// Dashboard-reference palette: purple leads, amber is the counterpoint,
-// the rest stay harmonized around them. Mirrors global.css --color-cat-*.
+// XMB-blue universe, lightened: sky blue leads, amber is the counterpoint.
+// Mirrors global.css --color-cat-*.
 // Index 8 (red) doubles as the error color (see PassphraseGate.astro).
 export const CATEGORICAL_COLORS = [
-  "#a78bfa", // purple (primary)
+  "#5ec8fa", // sky blue (primary)
   "#fbc65e", // amber
   "#f472b6", // pink
-  "#67e8f9", // cyan
+  "#a78bfa", // violet
   "#6ee7a0", // green
-  "#82aaff", // blue
-  "#e9e4ff", // lavender
+  "#82aaff", // indigo
+  "#e2f1ff", // ice
   "#ff6b6b", // red
 ] as const;
 
-/** Sequential ramp, low -> high intensity. Used for heatmap cells — deep
- *  violet-black to bright purple, matching the dashboard accent. */
-export const SEQUENTIAL_PURPLE = [
-  "#14101f",
-  "#1e1533",
-  "#2a1d4d",
-  "#3b2a6e",
-  "#553f9e",
-  "#7c5fd3",
-  "#a78bfa",
+/** Sequential ramp, low -> high intensity. Used for heatmap cells — blue,
+ *  starting well above the card color so low values stay visible. */
+export const SEQUENTIAL_BLUE = [
+  "#16324f",
+  "#1c4168",
+  "#235284",
+  "#2d68a6",
+  "#3a85c9",
+  "#55a9e8",
+  "#7fd0ff",
 ] as const;
 
 /** Assigns colors in the fixed categorical order — never re-cycle per filter state. */
@@ -35,8 +35,8 @@ export function categoricalColor(index: number): string {
 export function sequentialColor(t: number): string {
   // t in [0, 1]
   const clamped = Math.max(0, Math.min(1, t));
-  const idx = Math.round(clamped * (SEQUENTIAL_PURPLE.length - 1));
-  return SEQUENTIAL_PURPLE[idx]!;
+  const idx = Math.round(clamped * (SEQUENTIAL_BLUE.length - 1));
+  return SEQUENTIAL_BLUE[idx]!;
 }
 
 export function formatDuration(ms: number): string {
