@@ -1,32 +1,30 @@
 // Mirrors the CSS custom properties in src/styles/global.css. Kept as plain
 // hex strings (not read from CSS) so D3 code can use them directly for SVG fills.
 
-// Console-dashboard inspired (deep blue immersive UI, soft glow highlights) —
-// a cool blue/violet/pink family with a single warm gold accent for contrast,
-// echoing the reference nav's white-glow-on-blue look without going full
-// monochrome (8 categories still need to read apart in charts/lists).
+// Dashboard-reference palette: purple leads, amber is the counterpoint,
+// the rest stay harmonized around them. Mirrors global.css --color-cat-*.
 // Index 8 (red) doubles as the error color (see PassphraseGate.astro).
 export const CATEGORICAL_COLORS = [
-  "#5ec8fa", // sky blue (primary)
-  "#7c9cff", // indigo
-  "#a78bfa", // violet
+  "#a78bfa", // purple (primary)
+  "#fbc65e", // amber
   "#f472b6", // pink
-  "#2dd4bf", // teal
-  "#fbbf24", // gold (single warm accent)
-  "#e2e8f0", // silver
+  "#67e8f9", // cyan
+  "#6ee7a0", // green
+  "#82aaff", // blue
+  "#e9e4ff", // lavender
   "#ff6b6b", // red
 ] as const;
 
 /** Sequential ramp, low -> high intensity. Used for heatmap cells — deep
- *  navy to bright sky blue, matching the console background glow. */
-export const SEQUENTIAL_BLUE = [
-  "#0a1120",
-  "#0f1d3a",
-  "#15305c",
-  "#1c4a8a",
-  "#2668b8",
-  "#3d92e0",
-  "#5ec8fa",
+ *  violet-black to bright purple, matching the dashboard accent. */
+export const SEQUENTIAL_PURPLE = [
+  "#14101f",
+  "#1e1533",
+  "#2a1d4d",
+  "#3b2a6e",
+  "#553f9e",
+  "#7c5fd3",
+  "#a78bfa",
 ] as const;
 
 /** Assigns colors in the fixed categorical order — never re-cycle per filter state. */
@@ -37,8 +35,8 @@ export function categoricalColor(index: number): string {
 export function sequentialColor(t: number): string {
   // t in [0, 1]
   const clamped = Math.max(0, Math.min(1, t));
-  const idx = Math.round(clamped * (SEQUENTIAL_BLUE.length - 1));
-  return SEQUENTIAL_BLUE[idx]!;
+  const idx = Math.round(clamped * (SEQUENTIAL_PURPLE.length - 1));
+  return SEQUENTIAL_PURPLE[idx]!;
 }
 
 export function formatDuration(ms: number): string {

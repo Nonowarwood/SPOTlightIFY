@@ -40,6 +40,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       document.getElementById("trend-chart")!,
       [{ name: "Moyenne 28j", points: data.rollingAverage28d.map((p) => ({ date: new Date(p.date), value: p.minutes })) }],
       (n) => `${formatNumber(n)} min`,
+      { area: true },
     );
 
     renderTrendLine(
@@ -51,6 +52,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         },
       ],
       (n) => `${formatNumber(n)} min`,
+      { area: true },
     );
   });
 </script>

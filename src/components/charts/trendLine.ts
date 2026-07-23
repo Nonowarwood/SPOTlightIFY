@@ -1,5 +1,5 @@
 import { scaleLinear, scaleTime } from "d3-scale";
-import { line as d3line, curveMonotoneX } from "d3-shape";
+import { line as d3line, area as d3area, curveMonotoneX } from "d3-shape";
 import { extent, max } from "d3-array";
 import { select, pointer } from "d3-selection";
 import "d3-transition"; // side-effect import: extends Selection.prototype with .transition()
@@ -17,12 +17,22 @@ export interface TrendSeries {
   points: TrendSeriesPoint[];
 }
 
+export interface TrendLineOptions {
+  height?: number;
+  /** Fill the space under the (first) series with a soft gradient — the
+   *  dashboard-reference "area chart" look. */
+  area?: boolean;
+}
+
+let gradientSeq = 0;
+
 export function renderTrendLine(
   container: HTMLElement,
   series: TrendSeries[],
   formatValue: (n: number) => string,
-  height = 260,
+  opts: TrendLineOptions = {},
 ): void {
+  const height = opts.height ?? 260;
   const allPoints = series.flatMap((s) => s.points);
   if (allPoints.length === 0) {
     renderEmptyState(container, "Pas encore assez de données.");
@@ -57,6 +67,36 @@ export function renderTrendLine(
       .x((d) => x(d.date))
       .y((d) => y(d.value))
       .curve(curveMonotoneX);
+
+    if (opts.area && series[0]) {
+      const gradId = `trend-area-grad-${gradientSeq++}`;
+      const defs = svg.append("defs");
+      const grad = defs
+        .append("linearGradient")
+        .attr("id", gradId)
+        .attr("x1", "0")
+        .attr("y1", "0")
+        .attr("x2", "0")
+        .attr("y2", "1");
+      grad.append("stop").attr("offset", "0%").attr("stop-color", CATEGORICAL_COLORS[0]).attr("stop-opacity", 0.4);
+      grad.append("stop").attr("offset", "100%").attr("stop-color", CATEGORICAL_COLORS[0]).attr("stop-opacity", 0);
+
+      const areaGen = d3area<TrendSeriesPoint>()
+        .x((d) => x(d.date))
+        .y0(innerHeight)
+        .y1((d) => y(d.value))
+        .curve(curveMonotoneX);
+
+      g.append("path")
+        .datum(series[0].points)
+        .attr("fill", `url(#${gradId})`)
+        .attr("d", areaGen)
+        .attr("opacity", 0)
+        .transition()
+        .duration(900)
+        .ease(easeCubicOut)
+        .attr("opacity", 1);
+    }
 
     series.forEach((s, i) => {
       const color = CATEGORICAL_COLORS[i % CATEGORICAL_COLORS.length];

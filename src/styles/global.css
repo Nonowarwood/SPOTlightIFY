@@ -2,49 +2,51 @@
 @import "@fontsource-variable/outfit";
 
 :root {
-  /* Surfaces — deep immersive blue, console-dashboard style. */
-  --color-page: #060b14;
-  --color-card: rgba(255, 255, 255, 0.045);
-  --color-card-hover: rgba(255, 255, 255, 0.075);
-  --color-border: rgba(255, 255, 255, 0.09);
+  /* Surfaces — layered near-blacks (dashboard-reference style): a true dark
+   * page with slightly lifted solid cards, not translucent glass. */
+  --color-page: #0b0b10;
+  --color-card: #16151c;
+  --color-card-hover: #1c1b23;
+  --color-border: rgba(255, 255, 255, 0.07);
 
   /* Text */
-  --color-text: #f3f6ff;
-  --color-text-muted: #93a8c9;
-  --color-text-faint: #57698a;
+  --color-text: #f4f2fa;
+  --color-text-muted: #9d98ad;
+  --color-text-faint: #605c6e;
 
-  /* Primary accent: near-white, matching the reference's glowing active-icon
-   * highlight. --color-accent-glow is the tinted blue used for soft shadows. */
-  --color-accent: #eef4ff;
-  --color-accent-glow: #5ec8fa;
+  /* Primary accent duo from the reference: purple carries the identity,
+   * amber is the counterpoint (badges, second series). */
+  --color-accent: #a78bfa;
+  --color-accent-glow: #a78bfa;
+  --color-accent-2: #fbc65e;
 
-  /* Cool console-dashboard categorical order — never re-cycled per filter
-   * state. Index 8 (red) doubles as the error color, see PassphraseGate.astro. */
-  --color-cat-1: #5ec8fa; /* sky blue */
-  --color-cat-2: #7c9cff; /* indigo */
-  --color-cat-3: #a78bfa; /* violet */
-  --color-cat-4: #f472b6; /* pink */
-  --color-cat-5: #2dd4bf; /* teal */
-  --color-cat-6: #fbbf24; /* gold */
-  --color-cat-7: #e2e8f0; /* silver */
+  /* Categorical order — never re-cycled per filter state. Index 8 (red)
+   * doubles as the error color, see PassphraseGate.astro. */
+  --color-cat-1: #a78bfa; /* purple */
+  --color-cat-2: #fbc65e; /* amber */
+  --color-cat-3: #f472b6; /* pink */
+  --color-cat-4: #67e8f9; /* cyan */
+  --color-cat-5: #6ee7a0; /* green */
+  --color-cat-6: #82aaff; /* blue */
+  --color-cat-7: #e9e4ff; /* lavender */
   --color-cat-8: #ff6b6b; /* red */
 
-  /* Sequential ramp for heatmap intensity (steps 100 -> 700) — navy to sky blue. */
-  --color-seq-100: #0a1120;
-  --color-seq-200: #0f1d3a;
-  --color-seq-300: #15305c;
-  --color-seq-400: #1c4a8a;
-  --color-seq-500: #2668b8;
-  --color-seq-600: #3d92e0;
-  --color-seq-700: #5ec8fa;
+  /* Sequential ramp for heatmap intensity (steps 100 -> 700) — deep to bright purple. */
+  --color-seq-100: #14101f;
+  --color-seq-200: #1e1533;
+  --color-seq-300: #2a1d4d;
+  --color-seq-400: #3b2a6e;
+  --color-seq-500: #553f9e;
+  --color-seq-600: #7c5fd3;
+  --color-seq-700: #a78bfa;
 
-  /* Decorative-only gradient — hero/background flourish, never data encoding */
-  --gradient-hero: linear-gradient(135deg, #ffffff 0%, #5ec8fa 55%, #a78bfa 100%);
+  /* Decorative-only gradient — highlight cards, never data encoding */
+  --gradient-hero: linear-gradient(135deg, #c9a2ff 0%, #f7b955 100%);
 
   --font-display: "Outfit Variable", "Outfit", system-ui, sans-serif;
   --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
 
-  --radius-card: 20px;
+  --radius-card: 24px;
   --radius-bar: 999px;
 
   color-scheme: dark;
@@ -69,17 +71,17 @@ body {
   position: relative;
 }
 
-/* Immersive deep-blue console backdrop — fixed so it stays put across scroll,
- * with soft violet/teal glows echoing the categorical palette. */
+/* Near-black backdrop with faint purple depth — fixed so it stays put
+ * across scroll. Deliberately quieter than before: the reference's richness
+ * comes from the cards, not the background. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(ellipse 90% 50% at 50% -10%, color-mix(in srgb, var(--color-accent-glow) 22%, transparent) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 100% 100%, color-mix(in srgb, var(--color-cat-3) 14%, transparent) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 0% 90%, color-mix(in srgb, var(--color-cat-5) 10%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 45% at 75% -10%, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, color-mix(in srgb, var(--color-cat-3) 6%, transparent) 0%, transparent 55%),
     var(--color-page);
 }
 
@@ -115,20 +117,18 @@ a {
   color: inherit;
 }
 
-/* Apple grouped-inset card: quiet glass, generous radius, no hover theatrics. */
+/* Solid lifted card on the near-black page, dashboard-reference style. */
 .card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   padding: 1.4rem 1.5rem;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   transition: border-color 0.25s ease;
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.13);
 }
 
 .page {
