@@ -127,7 +127,7 @@ const clientData = links.map((l) => ({
 ---
 
 <header class="site-bar" id="site-bar">
-  <a class="site-brand" href={base}>
+  <a class="site-brand" href={base} aria-label="SPOTlightIFY">
     <svg class="site-logo" viewBox="0 0 64 64" aria-hidden="true">
       <defs>
         <linearGradient id="logo-bg" x1="0" y1="0" x2="1" y2="1">
@@ -142,7 +142,6 @@ const clientData = links.map((l) => ({
       <rect x="33.5" y="12" width="6.5" height="40" rx="3.25" fill="#fff"></rect>
       <rect x="43.5" y="22" width="6.5" height="20" rx="3.25" fill="#fff" opacity="0.92"></rect>
     </svg>
-    <span class="site-wordmark">SPOTlightIFY</span>
   </a>
   <div class="site-bar-right">
     <span class="site-bar-page">{current.label}</span>
@@ -415,6 +414,14 @@ const clientData = links.map((l) => ({
     if (isOpen()) layout(false);
   });
 
+  // Apple-style bar: transparent at rest, frosted once content scrolls under.
+  const siteBar = document.getElementById("site-bar")!;
+  function updateBar() {
+    siteBar.classList.toggle("is-scrolled", window.scrollY > 12);
+  }
+  updateBar();
+  window.addEventListener("scroll", updateBar, { passive: true });
+
   // --- Initial state ------------------------------------------------------
   if (sessionStorage.getItem(LAUNCH_KEY)) {
     // Arriving from a dashboard launch: land directly on the content,
@@ -433,6 +440,9 @@ const clientData = links.map((l) => ({
    * selectors are namespaced (.xmb*, .site-*, .menu-btn) to stay collision-free. */
 
   /* --- Slim site bar (content view) -------------------------------------- */
+  /* Apple-style: fully transparent at the top of the page, becomes a frosted
+   * material with a hairline once content scrolls underneath (.is-scrolled,
+   * toggled from the nav script). */
   .site-bar {
     position: sticky;
     top: 0;
@@ -442,11 +452,16 @@ const clientData = links.map((l) => ({
     justify-content: space-between;
     gap: 1rem;
     padding: 0.8rem 1.5rem;
-    background: color-mix(in srgb, var(--color-page) 72%, transparent);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border-bottom: 1px solid var(--color-border);
-    transition: opacity 0.3s ease;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: opacity 0.3s ease, background-color 0.35s ease, border-color 0.35s ease, backdrop-filter 0.35s ease;
+  }
+
+  .site-bar.is-scrolled {
+    background: color-mix(in srgb, var(--color-page) 66%, transparent);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
   }
 
   body.xmb-open .site-bar {
@@ -457,16 +472,12 @@ const clientData = links.map((l) => ({
   .site-brand {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
     text-decoration: none;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.95rem;
   }
 
   .site-logo {
-    width: 1.6rem;
-    height: 1.6rem;
+    width: 1.75rem;
+    height: 1.75rem;
     display: block;
   }
 

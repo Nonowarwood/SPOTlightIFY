@@ -93,14 +93,18 @@ h3,
   margin: 0;
 }
 
-/* Page titles (not the hero number, which has its own bigger treatment) get a
- * subtler gradient wash so every page reads as part of the same system. */
+/* Apple-style "Large Title": solid, heavy, tight tracking — no gradient wash. */
 h1.page-title {
-  background: var(--gradient-hero);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  width: fit-content;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  color: var(--color-text);
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  margin: 0.3rem 0 0;
 }
 
 .tabular {
@@ -111,24 +115,20 @@ a {
   color: inherit;
 }
 
+/* Apple grouped-inset card: quiet glass, generous radius, no hover theatrics. */
 .card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 1.4rem 1.5rem;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 32px rgba(0, 0, 0, 0.25);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.25s ease;
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--color-accent-glow) 40%, var(--color-border));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 12px 36px rgba(0, 0, 0, 0.3),
-    0 0 24px color-mix(in srgb, var(--color-accent-glow) 12%, transparent);
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .page {
@@ -137,13 +137,19 @@ a {
   padding: 1.25rem 1.5rem 4rem;
 }
 
+/* Apple grouped-list section header: small caps, quiet, slightly inset. */
 .section-title {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   color: var(--color-text-muted);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
   font-weight: 600;
+}
+
+#build-meta {
+  text-align: center;
+  font-size: 0.75rem;
 }
 
 .grid-2 {

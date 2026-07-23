@@ -3,7 +3,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Records">
-  <h1 class="page-title">Records & comportements</h1>
+  <header class="page-header">
+    <h1 class="page-title">Records & comportements</h1>
+    <p class="page-subtitle">Séries, sessions et obsessions.</p>
+  </header>
   <section class="stack">
     <div class="grid-2">
       <div class="card">
@@ -33,13 +36,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </BaseLayout>
 
 <style>
-  .page-title {
-    padding: 2.5rem 0 1.5rem;
-    font-size: 1.8rem;
+  .page-header {
+    padding: 2.5rem 0 1.75rem;
   }
 
   .stat-value {
-    font-size: 1.8rem;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     font-family: var(--font-display);
   }
 </style>

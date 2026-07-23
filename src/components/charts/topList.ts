@@ -1,4 +1,3 @@
-import { categoricalColor } from "../../lib/theme.ts";
 import { renderEmptyState } from "./chart-utils.ts";
 
 export interface TopListItem {
@@ -10,8 +9,8 @@ export interface TopListItem {
 
 export type TopListShape = "circle" | "square";
 
-/** Ranked horizontal-bar list (top artists/tracks/albums/genres), with a
- *  thumbnail per row — a photo when available, otherwise a colored initial. */
+/** Ranked list, Apple Music / Screen Time style: artwork, label over a thin
+ *  single-accent progress bar, right-aligned value, hairline separators. */
 export function renderTopList(
   container: HTMLElement,
   items: TopListItem[],
@@ -31,10 +30,9 @@ export function renderTopList(
   items.forEach((item, i) => {
     const li = document.createElement("li");
     li.className = "top-list-row";
-    li.style.setProperty("--accent", categoricalColor(i));
 
     const rank = document.createElement("span");
-    rank.className = "top-list-rank";
+    rank.className = "top-list-rank tabular";
     rank.textContent = String(i + 1);
 
     const thumb = document.createElement("span");
@@ -47,32 +45,24 @@ export function renderTopList(
       thumb.appendChild(img);
     } else {
       thumb.textContent = item.label.charAt(0).toUpperCase();
-      thumb.style.background = `color-mix(in srgb, ${categoricalColor(i)} 28%, var(--color-card))`;
-      thumb.style.color = categoricalColor(i);
     }
 
     const labels = document.createElement("span");
     labels.className = "top-list-labels";
+    const barPct = (item.value / max) * 100;
     labels.innerHTML = `<span class="top-list-label">${escapeHtml(item.label)}</span>${
       item.sublabel ? `<span class="top-list-sublabel">${escapeHtml(item.sublabel)}</span>` : ""
-    }`;
-
-    const barTrack = document.createElement("span");
-    barTrack.className = "top-list-bar-track";
-    const bar = document.createElement("span");
-    bar.className = "top-list-bar";
-    bar.style.background = categoricalColor(i);
-    bar.style.width = "0%";
-    barTrack.appendChild(bar);
+    }<span class="top-list-bar-track"><span class="top-list-bar" style="width:0%"></span></span>`;
     requestAnimationFrame(() => {
-      bar.style.width = `${(item.value / max) * 100}%`;
+      const bar = labels.querySelector<HTMLElement>(".top-list-bar");
+      if (bar) bar.style.width = `${barPct}%`;
     });
 
     const value = document.createElement("span");
     value.className = "top-list-value tabular";
     value.textContent = formatValue(item.value);
 
-    li.append(rank, thumb, labels, value, barTrack);
+    li.append(rank, thumb, labels, value);
     list.appendChild(li);
   });
 
@@ -92,33 +82,43 @@ function injectStylesOnce(): void {
   stylesInjected = true;
   const style = document.createElement("style");
   style.textContent = `
-    .top-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+    .top-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
     .top-list-row {
       display: grid;
-      grid-template-columns: 1.25rem 2.5rem minmax(0, 1fr) auto;
+      grid-template-columns: 1.4rem 2.75rem minmax(0, 1fr) auto;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.4rem 0.5rem;
-      border-radius: 14px;
+      gap: 0.9rem;
+      padding: 0.7rem 0.15rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       transition: background-color 0.2s ease;
     }
-    .top-list-row:hover { background: var(--color-card-hover); }
-    .top-list-rank { color: var(--color-text-faint); font-size: 0.8rem; text-align: right; }
+    .top-list-row:last-child { border-bottom: none; }
+    .top-list-row:hover { background: rgba(255, 255, 255, 0.035); }
+    .top-list-rank { color: var(--color-text-faint); font-size: 0.8rem; text-align: center; }
     .top-list-thumb {
-      width: 2.5rem; height: 2.5rem; flex-shrink: 0; overflow: hidden;
+      width: 2.75rem; height: 2.75rem; flex-shrink: 0; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display); font-weight: 700; font-size: 1rem;
-      box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent);
+      font-family: var(--font-display); font-weight: 600; font-size: 1rem;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--color-text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .top-list-thumb--square { border-radius: 10px; }
     .top-list-thumb--circle { border-radius: 999px; }
     .top-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .top-list-labels { display: flex; flex-direction: column; min-width: 0; }
-    .top-list-label { font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .top-list-sublabel { font-size: 0.75rem; color: var(--color-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .top-list-bar-track { grid-column: 2 / -1; height: 4px; background: var(--color-border); border-radius: var(--radius-bar); overflow: hidden; }
-    .top-list-bar { display: block; height: 100%; border-radius: var(--radius-bar); transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
-    .top-list-value { font-size: 0.8rem; color: var(--color-text-muted); }
+    .top-list-labels { display: flex; flex-direction: column; min-width: 0; gap: 0.15rem; }
+    .top-list-label { font-size: 0.92rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-list-sublabel { font-size: 0.76rem; color: var(--color-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-list-bar-track {
+      height: 3px; margin-top: 0.3rem; max-width: 320px;
+      background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;
+    }
+    .top-list-bar {
+      display: block; height: 100%; border-radius: 999px;
+      background: color-mix(in srgb, var(--color-cat-1) 85%, white);
+      transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .top-list-value { font-size: 0.82rem; color: var(--color-text-muted); padding-left: 0.5rem; }
   `;
   document.head.appendChild(style);
 }

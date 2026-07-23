@@ -4,7 +4,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout title="Overview">
   <section class="hero">
-    <div class="hero-glow" aria-hidden="true"></div>
     <p class="section-title">Temps d'écoute total</p>
     <p id="hero-number" class="hero-number tabular">—</p>
     <p id="hero-sub" class="hero-sub"></p>
@@ -69,49 +68,37 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </BaseLayout>
 
 <style>
+  /* Apple Health-style hero: quiet label, huge solid number, footnote. */
   .hero {
-    position: relative;
-    padding: 3rem 0 2rem;
-    isolation: isolate;
-  }
-
-  .hero-glow {
-    position: absolute;
-    top: -140px;
-    left: -80px;
-    width: 420px;
-    height: 420px;
-    background: var(--gradient-hero);
-    filter: blur(90px);
-    opacity: 0.35;
-    z-index: -1;
-    border-radius: 50%;
+    padding: 2.75rem 0 2rem;
   }
 
   .hero-number {
-    font-size: clamp(2.75rem, 9vw, 4.5rem);
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    font-size: clamp(2.9rem, 9vw, 4.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--color-text);
     line-height: 1;
   }
 
   .hero-sub {
     color: var(--color-text-muted);
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
+    font-size: 0.92rem;
+    margin-top: 0.6rem;
   }
 
   .coverage-note {
     color: var(--color-text-faint);
     font-size: 0.8rem;
-    margin-top: 0.75rem;
-    max-width: 42ch;
+    margin-top: 0.7rem;
+    max-width: 46ch;
+    line-height: 1.5;
   }
 
   .stat-value {
-    font-size: 1.8rem;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     font-family: var(--font-display);
   }
 
@@ -128,18 +115,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     color: var(--color-text-faint);
     font-size: 0.8rem;
     margin: 0.25rem 0 0;
-    max-width: 34ch;
+    max-width: 40ch;
+    line-height: 1.5;
   }
 
+  /* iOS segmented control. */
   .period-toggle {
     display: inline-flex;
-    background: var(--color-card);
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    padding: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 2px;
     flex-shrink: 0;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
   }
 
   .period-btn {
@@ -147,12 +133,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     border: none;
     background: transparent;
     color: var(--color-text-muted);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 500;
     font-family: var(--font-body);
-    padding: 0.45rem 1rem;
-    border-radius: 999px;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .period-btn:hover {
@@ -160,10 +147,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .period-btn.is-active {
-    background: var(--color-accent);
-    color: var(--color-page);
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--color-text);
     font-weight: 600;
-    box-shadow: 0 0 16px color-mix(in srgb, var(--color-accent-glow) 50%, transparent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   }
 </style>
 
