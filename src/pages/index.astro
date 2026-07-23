@@ -40,34 +40,27 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <div id="approx-history-section" class="stack" hidden>
       <div class="approx-header">
-        <p class="section-title">Aperçu longue durée</p>
-        <p class="approx-note">
-          Classement approximatif calculé par Spotify (pas nos stats précises minute par minute) —
-          en attendant l'import de ton historique complet.
-        </p>
-      </div>
-
-      <p class="approx-subtitle">6 derniers mois</p>
-      <div class="grid-2">
-        <div class="card">
-          <p class="section-title">Top artistes</p>
-          <div id="approx-artists-medium"></div>
+        <div>
+          <p class="section-title">Aperçu longue durée</p>
+          <p class="approx-note">
+            Classement approximatif calculé par Spotify (pas nos stats précises minute par minute) —
+            en attendant l'import de ton historique complet.
+          </p>
         </div>
-        <div class="card">
-          <p class="section-title">Top titres</p>
-          <div id="approx-tracks-medium"></div>
+        <div class="period-toggle" role="group" aria-label="Période">
+          <button type="button" class="period-btn is-active" data-period="mediumTerm">6 mois</button>
+          <button type="button" class="period-btn" data-period="longTerm">Longue durée</button>
         </div>
       </div>
 
-      <p class="approx-subtitle">Longue durée (plusieurs années)</p>
       <div class="grid-2">
         <div class="card">
           <p class="section-title">Top artistes</p>
-          <div id="approx-artists-long"></div>
+          <div id="approx-artists"></div>
         </div>
         <div class="card">
           <p class="section-title">Top titres</p>
-          <div id="approx-tracks-long"></div>
+          <div id="approx-tracks"></div>
         </div>
       </div>
     </div>
@@ -115,20 +108,46 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .approx-header {
-    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
   }
 
   .approx-note {
     color: var(--color-text-faint);
     font-size: 0.8rem;
     margin: 0.25rem 0 0;
+    max-width: 34ch;
   }
 
-  .approx-subtitle {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin: 0.5rem 0 -0.25rem;
+  .period-toggle {
+    display: inline-flex;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 3px;
+    flex-shrink: 0;
+  }
+
+  .period-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-family: var(--font-body);
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .period-btn.is-active {
+    background: var(--color-cat-1);
+    color: white;
   }
 </style>
 
@@ -180,13 +199,24 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       const approx = (await approxRes.json()) as ApproxHistoryData;
       document.getElementById("approx-history-section")!.hidden = false;
 
-      const asItems = (items: typeof approx.mediumTerm.topArtists) =>
+      const asItems = (items: (typeof approx.mediumTerm.topArtists)) =>
         items.slice(0, 20).map((a) => ({ label: a.name, sublabel: a.sublabel, imageUrl: a.imageUrl, value: a.minutes }));
 
-      renderTopList(document.getElementById("approx-artists-medium")!, asItems(approx.mediumTerm.topArtists), () => "", "circle");
-      renderTopList(document.getElementById("approx-tracks-medium")!, asItems(approx.mediumTerm.topTracks), () => "");
-      renderTopList(document.getElementById("approx-artists-long")!, asItems(approx.longTerm.topArtists), () => "", "circle");
-      renderTopList(document.getElementById("approx-tracks-long")!, asItems(approx.longTerm.topTracks), () => "");
+      function renderPeriod(period: "mediumTerm" | "longTerm") {
+        const bucket = approx[period];
+        renderTopList(document.getElementById("approx-artists")!, asItems(bucket.topArtists), () => "", "circle");
+        renderTopList(document.getElementById("approx-tracks")!, asItems(bucket.topTracks), () => "");
+      }
+
+      renderPeriod("mediumTerm");
+
+      document.querySelectorAll<HTMLButtonElement>(".period-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".period-btn").forEach((b) => b.classList.remove("is-active"));
+          btn.classList.add("is-active");
+          renderPeriod(btn.dataset.period as "mediumTerm" | "longTerm");
+        });
+      });
     }
   });
 </script>
