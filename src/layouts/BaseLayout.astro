@@ -1,0 +1,49 @@
+---
+import "../styles/global.css";
+import PassphraseGate from "../components/gate/PassphraseGate.astro";
+import SectionNav from "../components/nav/SectionNav.astro";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <title>{title} — SPOTlightIFY</title>
+  </head>
+  <body>
+    <PassphraseGate />
+    <SectionNav />
+    <main class="page">
+      <slot />
+    </main>
+    <footer class="page">
+      <p id="build-meta" class="empty-state"></p>
+    </footer>
+    <script>
+      import { onUnlock } from "../lib/gate.ts";
+
+      onUnlock(async () => {
+        try {
+          const res = await fetch(`${import.meta.env.BASE_URL}data/meta.json`);
+          if (!res.ok) return;
+          const meta = (await res.json()) as { generatedAt: string; recordCount: number };
+          const el = document.getElementById("build-meta");
+          if (el) {
+            const date = new Date(meta.generatedAt).toLocaleString("fr-FR");
+            el.textContent = `Mis à jour le ${date} · ${meta.recordCount.toLocaleString("fr-FR")} écoutes enregistrées`;
+          }
+        } catch {
+          // meta.json missing (e.g. local dev without a build yet) — footer stays empty.
+        }
+      });
+    </script>
+  </body>
+</html>

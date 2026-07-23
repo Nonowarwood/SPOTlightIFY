@@ -1,0 +1,47 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Patterns">
+  <h1 class="page-title">Patterns d'écoute</h1>
+  <section class="stack">
+    <div class="card">
+      <p class="section-title">Activité quotidienne</p>
+      <div id="calendar-heatmap" class="scroll-x"></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Heure de la journée × jour de la semaine</p>
+      <div id="hour-day-heatmap"></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page-title {
+    padding: 2.5rem 0 1.5rem;
+    font-size: 1.8rem;
+  }
+
+  .scroll-x {
+    overflow-x: auto;
+  }
+</style>
+
+<script>
+  import { onUnlock } from "../lib/gate.ts";
+  import { renderCalendarHeatmap } from "../components/charts/calendarHeatmap.ts";
+  import { renderHourDayHeatmap } from "../components/charts/hourDayHeatmap.ts";
+  import type { HeatmapData } from "../lib/data-types.ts";
+
+  onUnlock(async () => {
+    const res = await fetch(`${import.meta.env.BASE_URL}data/heatmap.json`);
+    if (!res.ok) return;
+    const data = (await res.json()) as HeatmapData;
+
+    renderCalendarHeatmap(
+      document.getElementById("calendar-heatmap")!,
+      data.calendar.map((d) => ({ date: d.date, minutes: d.minutes })),
+    );
+    renderHourDayHeatmap(document.getElementById("hour-day-heatmap")!, data.hourDayMatrix);
+  });
+</script>

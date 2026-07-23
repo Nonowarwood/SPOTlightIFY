@@ -1,0 +1,183 @@
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/inter";
+
+:root {
+  /* Surfaces */
+  --color-page: #0d0d0d;
+  --color-card: #1a1a19;
+  --color-card-hover: #212120;
+  --color-border: #2c2c2a;
+
+  /* Text */
+  --color-text: #f2f2ef;
+  --color-text-muted: #a3a39c;
+  --color-text-faint: #6b6b65;
+
+  /* Fixed categorical order — never re-cycled per filter/selection state. */
+  --color-cat-1: #3987e5; /* blue */
+  --color-cat-2: #d95926; /* orange */
+  --color-cat-3: #199e70; /* aqua */
+  --color-cat-4: #c98500; /* yellow */
+  --color-cat-5: #d55181; /* magenta */
+  --color-cat-6: #008300; /* green */
+  --color-cat-7: #9085e9; /* violet */
+  --color-cat-8: #e66767; /* red */
+
+  /* Sequential ramp for heatmap intensity (steps 100 -> 700) */
+  --color-seq-100: #101d2e;
+  --color-seq-200: #16314f;
+  --color-seq-300: #1a4571;
+  --color-seq-400: #1f5c98;
+  --color-seq-500: #2c74bd;
+  --color-seq-600: #4b93de;
+  --color-seq-700: #7fb4ec;
+
+  /* Decorative-only gradient — hero/background flourish, never data encoding */
+  --gradient-hero: linear-gradient(135deg, #1db954 0%, #9085e9 55%, #e66767 100%);
+
+  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
+
+  --radius-card: 16px;
+  --radius-bar: 4px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.hero-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: inherit;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Shared chart chrome */
+.chart-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.chart-tooltip.visible {
+  opacity: 1;
+}
+
+.chart-axis text {
+  fill: var(--color-text-faint);
+  font-size: 0.7rem;
+  font-family: var(--font-body);
+}
+
+.chart-axis .domain,
+.chart-axis .tick line {
+  stroke: var(--color-border);
+}
+
+.chart-gridline {
+  stroke: var(--color-border);
+  stroke-dasharray: 2 3;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.75rem;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chart-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.empty-state {
+  color: var(--color-text-faint);
+  font-size: 0.85rem;
+}

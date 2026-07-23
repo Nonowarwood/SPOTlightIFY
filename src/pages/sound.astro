@@ -1,0 +1,73 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Son">
+  <h1 class="page-title">Le son</h1>
+  <section class="stack">
+    <div class="card">
+      <p class="section-title">Genres les plus écoutés</p>
+      <div id="genre-donut"></div>
+    </div>
+    <div id="mood-card" class="card" hidden>
+      <p class="section-title">Ambiance moyenne</p>
+      <div id="mood-stats" class="grid-2"></div>
+    </div>
+    <p id="mood-unavailable" class="empty-state" hidden>
+      L'analyse d'ambiance (énergie, valence, danceability) nécessite un accès étendu à l'API
+      Spotify que cette app n'a pas — seule l'analyse par genre est disponible.
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .page-title {
+    padding: 2.5rem 0 1.5rem;
+    font-size: 1.8rem;
+  }
+
+  .mood-stat-value {
+    font-size: 1.6rem;
+    font-family: var(--font-display);
+  }
+</style>
+
+<script>
+  import { onUnlock } from "../lib/gate.ts";
+  import { renderGenreDonut } from "../components/charts/genreDonut.ts";
+  import type { GenresData, MetaData, SoundData } from "../lib/data-types.ts";
+
+  onUnlock(async () => {
+    const genresRes = await fetch(`${import.meta.env.BASE_URL}data/genres.json`);
+    if (genresRes.ok) {
+      const genres = (await genresRes.json()) as GenresData;
+      renderGenreDonut(document.getElementById("genre-donut")!, genres.topGenres);
+    }
+
+    const metaRes = await fetch(`${import.meta.env.BASE_URL}data/meta.json`);
+    const meta = metaRes.ok ? ((await metaRes.json()) as MetaData) : null;
+
+    if (meta?.soundAvailable) {
+      const soundRes = await fetch(`${import.meta.env.BASE_URL}data/sound.json`);
+      if (soundRes.ok) {
+        const sound = (await soundRes.json()) as SoundData;
+        const moodCard = document.getElementById("mood-card")!;
+        moodCard.hidden = false;
+        document.getElementById("mood-stats")!.innerHTML = [
+          ["Énergie", sound.avgEnergy],
+          ["Valence (positivité)", sound.avgValence],
+          ["Danceability", sound.avgDanceability],
+        ]
+          .map(
+            ([label, value]) =>
+              `<div><p class="section-title">${label}</p><p class="mood-stat-value tabular">${Math.round(
+                (value as number) * 100,
+              )}%</p></div>`,
+          )
+          .join("");
+      }
+    } else {
+      document.getElementById("mood-unavailable")!.hidden = false;
+    }
+  });
+</script>

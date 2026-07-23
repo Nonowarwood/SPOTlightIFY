@@ -1,0 +1,110 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Overview">
+  <section class="hero">
+    <p class="section-title">Temps d'écoute total</p>
+    <p id="hero-number" class="hero-number tabular">—</p>
+    <p id="hero-sub" class="hero-sub"></p>
+  </section>
+
+  <section class="stack">
+    <div class="grid-2">
+      <div class="card">
+        <p class="section-title">Titres uniques</p>
+        <p id="stat-tracks" class="stat-value tabular">—</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Artistes uniques</p>
+        <p id="stat-artists" class="stat-value tabular">—</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">Top artistes (30 derniers jours)</p>
+      <div id="top-artists"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <p class="section-title">Top titres (30 derniers jours)</p>
+        <div id="top-tracks"></div>
+      </div>
+      <div class="card">
+        <p class="section-title">Top albums (30 derniers jours)</p>
+        <div id="top-albums"></div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 3rem 0 2rem;
+  }
+
+  .hero-number {
+    font-size: clamp(2.75rem, 9vw, 4.5rem);
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+  }
+
+  .hero-sub {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-family: var(--font-display);
+  }
+</style>
+
+<script>
+  import { onUnlock } from "../lib/gate.ts";
+  import { formatDuration, formatNumber, formatPercent } from "../lib/theme.ts";
+  import { animateBigNumber } from "../components/charts/bigNumber.ts";
+  import { renderTopList } from "../components/charts/topList.ts";
+  import type { OverviewData } from "../lib/data-types.ts";
+
+  onUnlock(async () => {
+    const res = await fetch(`${import.meta.env.BASE_URL}data/overview.json`);
+    if (!res.ok) return;
+    const data = (await res.json()) as OverviewData;
+
+    const heroEl = document.getElementById("hero-number")!;
+    animateBigNumber(heroEl, data.totalMsAllTime, (v) => formatDuration(v));
+
+    const subEl = document.getElementById("hero-sub")!;
+    const delta = data.deltas.last30dVsPrevious30dPct;
+    if (delta !== null) {
+      const sign = delta >= 0 ? "+" : "";
+      subEl.textContent = `${sign}${formatPercent(delta)} vs les 30 jours précédents`;
+    }
+
+    document.getElementById("stat-tracks")!.textContent = formatNumber(data.uniqueTracks);
+    document.getElementById("stat-artists")!.textContent = formatNumber(data.uniqueArtists);
+
+    const w = data.windows.last30d;
+    renderTopList(
+      document.getElementById("top-artists")!,
+      w.topArtists.map((a) => ({ label: a.name, value: a.minutes })),
+      (n) => `${formatNumber(n)} min`,
+    );
+    renderTopList(
+      document.getElementById("top-tracks")!,
+      w.topTracks.map((t) => ({ label: t.name, sublabel: t.sublabel, value: t.minutes })),
+      (n) => `${formatNumber(n)} min`,
+    );
+    renderTopList(
+      document.getElementById("top-albums")!,
+      w.topAlbums.map((a) => ({ label: a.name, sublabel: a.sublabel, value: a.minutes })),
+      (n) => `${formatNumber(n)} min`,
+    );
+  });
+</script>

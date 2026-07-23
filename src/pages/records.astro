@@ -1,0 +1,70 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Records">
+  <h1 class="page-title">Records & comportements</h1>
+  <section class="stack">
+    <div class="grid-2">
+      <div class="card">
+        <p class="section-title">Plus longue série</p>
+        <p id="stat-longest-streak" class="stat-value tabular">—</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Série actuelle</p>
+        <p id="stat-current-streak" class="stat-value tabular">—</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <p class="section-title">Taux de skip</p>
+        <p id="stat-skip-rate" class="stat-value tabular">—</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Session la plus longue</p>
+        <p id="stat-longest-session" class="stat-value tabular">—</p>
+      </div>
+    </div>
+    <div class="card">
+      <p class="section-title">Titres les plus rejoués</p>
+      <div id="most-replayed"></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page-title {
+    padding: 2.5rem 0 1.5rem;
+    font-size: 1.8rem;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-family: var(--font-display);
+  }
+</style>
+
+<script>
+  import { onUnlock } from "../lib/gate.ts";
+  import { formatPercent } from "../lib/theme.ts";
+  import { renderTopList } from "../components/charts/topList.ts";
+  import type { RecordsData } from "../lib/data-types.ts";
+
+  onUnlock(async () => {
+    const res = await fetch(`${import.meta.env.BASE_URL}data/records.json`);
+    if (!res.ok) return;
+    const data = (await res.json()) as RecordsData;
+
+    document.getElementById("stat-longest-streak")!.textContent = `${data.longestStreakDays} j`;
+    document.getElementById("stat-current-streak")!.textContent = `${data.currentStreakDays} j`;
+    document.getElementById("stat-skip-rate")!.textContent =
+      data.skipRate === null ? "N/A" : formatPercent(data.skipRate);
+    document.getElementById("stat-longest-session")!.textContent = `${data.longestSessionMinutes} min`;
+
+    renderTopList(
+      document.getElementById("most-replayed")!,
+      data.mostReplayed.map((t) => ({ label: t.name, sublabel: t.sublabel, value: t.minutes })),
+      (n) => `${n}×`,
+    );
+  });
+</script>

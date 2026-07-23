@@ -1,0 +1,54 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Tendances">
+  <h1 class="page-title">Tendances</h1>
+  <section class="stack">
+    <div class="card">
+      <p class="section-title">Minutes écoutées par jour (moyenne mobile 28 jours)</p>
+      <div id="trend-chart"></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Minutes écoutées par mois</p>
+      <div id="monthly-chart"></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page-title {
+    padding: 2.5rem 0 1.5rem;
+    font-size: 1.8rem;
+  }
+</style>
+
+<script>
+  import { onUnlock } from "../lib/gate.ts";
+  import { formatNumber } from "../lib/theme.ts";
+  import { renderTrendLine } from "../components/charts/trendLine.ts";
+  import type { TrendsData } from "../lib/data-types.ts";
+
+  onUnlock(async () => {
+    const res = await fetch(`${import.meta.env.BASE_URL}data/trends.json`);
+    if (!res.ok) return;
+    const data = (await res.json()) as TrendsData;
+
+    renderTrendLine(
+      document.getElementById("trend-chart")!,
+      [{ name: "Moyenne 28j", points: data.rollingAverage28d.map((p) => ({ date: new Date(p.date), value: p.minutes })) }],
+      (n) => `${formatNumber(n)} min`,
+    );
+
+    renderTrendLine(
+      document.getElementById("monthly-chart")!,
+      [
+        {
+          name: "Minutes / mois",
+          points: data.monthly.map((p) => ({ date: new Date(`${p.month}-01`), value: p.minutes })),
+        },
+      ],
+      (n) => `${formatNumber(n)} min`,
+    );
+  });
+</script>

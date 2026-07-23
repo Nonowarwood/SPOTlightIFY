@@ -1,0 +1,31 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# generated at build time by the aggregate script — never hand-committed,
+# and never contains raw per-event data (see scripts/aggregate/)
+public/data/
+
+# synthetic local-dev-only fixture data (scripts/aggregate/fixture/)
+.fixture-data/
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/

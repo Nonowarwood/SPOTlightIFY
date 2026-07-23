@@ -1,0 +1,160 @@
+---
+---
+
+<div id="gate-overlay" class="gate-overlay">
+  <div class="gate-card">
+    <p class="gate-eyebrow">SPOTlightIFY</p>
+    <h1 class="gate-title">Privé</h1>
+    <p class="gate-copy">Entre le mot de passe pour voir le tableau de bord.</p>
+    <form id="gate-form" autocomplete="off">
+      <input
+        id="gate-input"
+        type="password"
+        name="passphrase"
+        placeholder="Mot de passe"
+        autofocus
+      />
+      <button type="submit">Entrer</button>
+    </form>
+    <p id="gate-error" class="gate-error" hidden>Mot de passe incorrect.</p>
+    <label class="gate-remember">
+      <input id="gate-remember" type="checkbox" checked />
+      Se souvenir de moi sur cet appareil
+    </label>
+  </div>
+</div>
+
+<script>
+  import { sha256Hex, markUnlocked, isUnlocked, unlockWithoutPersisting } from "../../lib/gate.ts";
+
+  const overlay = document.getElementById("gate-overlay") as HTMLDivElement;
+  const form = document.getElementById("gate-form") as HTMLFormElement;
+  const input = document.getElementById("gate-input") as HTMLInputElement;
+  const error = document.getElementById("gate-error") as HTMLParagraphElement;
+  const remember = document.getElementById("gate-remember") as HTMLInputElement;
+
+  const expectedHash = import.meta.env.PUBLIC_PASSPHRASE_HASH as string | undefined;
+
+  function hide() {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  if (isUnlocked()) {
+    hide();
+  } else if (!expectedHash) {
+    // No passphrase configured (e.g. local dev without the secret set) — don't
+    // lock the developer out of their own site. markUnlocked() (not just hide())
+    // matters here: page scripts' onUnlock() checks isUnlocked() synchronously,
+    // and this script block runs before theirs, so the state must be persisted
+    // for them to see it — a live-only event dispatched here would already be
+    // gone by the time they start listening.
+    markUnlocked();
+    hide();
+  } else {
+    document.body.style.overflow = "hidden";
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!expectedHash) return;
+    const hash = await sha256Hex(input.value);
+    if (hash === expectedHash) {
+      if (remember.checked) markUnlocked();
+      else unlockWithoutPersisting();
+      hide();
+    } else {
+      error.hidden = false;
+      input.value = "";
+      input.focus();
+    }
+  });
+</script>
+
+<style>
+  .gate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 30% 20%, #14202a 0%, #0d0d0d 60%);
+  }
+
+  .gate-card {
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .gate-eyebrow {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: 0 0 0.5rem;
+  }
+
+  .gate-title {
+    font-size: 2.5rem;
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+  }
+
+  .gate-copy {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 1.5rem;
+  }
+
+  #gate-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  #gate-input {
+    flex: 1;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    color: var(--color-text);
+    font-size: 0.95rem;
+  }
+
+  #gate-input:focus {
+    outline: 2px solid var(--color-cat-1);
+    outline-offset: 2px;
+  }
+
+  #gate-form button {
+    background: var(--color-cat-1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.7rem 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .gate-error {
+    color: var(--color-cat-8);
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+  }
+
+  .gate-remember {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    font-size: 0.8rem;
+    color: var(--color-text-faint);
+  }
+</style>
