@@ -207,7 +207,17 @@ const clientData = links.map((l) => ({
     row.style.transform = `translateX(${offset}px)`;
     if (!animate) void row.offsetWidth; // flush so the next change animates again
     detail.style.left = `${anchorX()}px`;
+
+    if (animate) {
+      // While the row slides, a *different* tile ends up under the stationary
+      // cursor — without this guard its mouseenter would steal focus and the
+      // slide would cascade tile after tile to the end of the row.
+      row.classList.add("is-sliding");
+      clearTimeout(slideTimer);
+      slideTimer = setTimeout(() => row.classList.remove("is-sliding"), 550);
+    }
   }
+  let slideTimer: ReturnType<typeof setTimeout>;
 
   // --- Sub-list rendering ------------------------------------------------
   function renderSublist() {
@@ -397,6 +407,10 @@ const clientData = links.map((l) => ({
     display: flex;
     transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: transform;
+  }
+
+  .xmb-row.is-sliding .xmb-tile {
+    pointer-events: none;
   }
 
   .xmb-slot {
