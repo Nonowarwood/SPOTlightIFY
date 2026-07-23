@@ -1,18 +1,20 @@
 ---
-// Fullscreen PS3/XMB-style navigation screen.
+// Fullscreen PS3/XMB-style navigation, now as a "console dashboard" overlay:
 //
-// Faithful XMB UX mechanics:
-//  - The focused icon does NOT move to the row: the whole row slides so the
-//    focused icon always sits at a fixed anchor point (~30% from the left),
-//    exactly like the PS3 crossbar.
-//  - Arrow keys ←/→ change category, ↑/↓ move through the vertical sub-list,
-//    Enter opens — mouse hover does the same thing for pointer users.
-//  - Clock top-right, like the XMB.
-//  - The vertical sub-list hangs under the focused icon; the selected item is
-//    enlarged with its description, siblings are dimmed (cf. the collectui
-//    reference: Product → Dashboard/Editor/API/Integrations).
+//  - Fresh page load lands on the XMB (content sits receded behind: scaled
+//    down, blurred, dimmed — PS5 style depth).
+//  - Enter / clicking the focused tile "launches" the section: the tile
+//    flashes, the dashboard fades away and the content zooms up to the
+//    foreground. Cross-page launches carry a sessionStorage flag so the
+//    destination page plays the content-entrance animation instead of
+//    landing back on the dashboard.
+//  - The slim site bar's Menu button (or Escape… reopening: the M key /
+//    Menu button; closing: Escape) brings the dashboard back over the
+//    receded content, like the PS button.
 //
-// The screen fills 100dvh; page content lives below (scroll cue at the bottom).
+// XMB mechanics kept from the previous iteration: the row slides so the
+// focused icon stays pinned at a fixed anchor; ←/→/↑/↓/Enter navigation;
+// hover-cascade guard while sliding; live clock; staggered sub-list.
 const base = import.meta.env.BASE_URL;
 
 const ICONS: Record<string, string> = {
@@ -35,6 +37,7 @@ const ICONS: Record<string, string> = {
   flame: `<path d="M12 3c.5 3-1.4 4.6-2.8 6.2C7.8 10.8 7 12.3 7 14a5 5 0 0 0 10 0c0-1.5-.6-2.8-1.5-4-.4 1-.9 1.6-1.8 2.1.5-2.9-.3-6.4-1.7-9.1z" fill="currentColor" stroke="none"/>`,
   repeat: `<path d="M4.5 9.5a5 5 0 0 1 5-4.5h7" fill="none" stroke-linecap="round"/><path d="M14 2.5l3 2.5-3 2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 14.5a5 5 0 0 1-5 4.5h-7" fill="none" stroke-linecap="round"/><path d="M10 21.5L7 19l3-2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
   trendSmall: `<path d="M3.5 17.5 L9 11.5 L13 15 L20.5 6.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+  menu: `<rect x="3" y="3" width="8" height="8" rx="2.4" fill="none"/><rect x="13" y="3" width="8" height="8" rx="2.4" fill="none"/><rect x="3" y="13" width="8" height="8" rx="2.4" fill="none"/><rect x="13" y="13" width="8" height="8" rx="2.4" fill="none"/>`,
 };
 
 interface SubItem {
@@ -109,12 +112,12 @@ const links: NavLink[] = [
 
 const currentPath = Astro.url.pathname;
 const currentIndex = Math.max(0, links.findIndex((l) => l.href === currentPath));
+const current = links[currentIndex]!;
 
 function iconSvg(icon: string, cls = ""): string {
   return `<svg class="${cls}" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8">${ICONS[icon]}</svg>`;
 }
 
-// Serialized for the client script (rebuilds the sub-list on focus change).
 const clientData = links.map((l) => ({
   href: l.href,
   label: l.label,
@@ -123,13 +126,49 @@ const clientData = links.map((l) => ({
 }));
 ---
 
-<nav class="xmb" id="xmb" data-current-index={currentIndex}>
+<header class="site-bar" id="site-bar">
+  <a class="site-brand" href={base}>
+    <svg class="site-logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="logo-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#2a6db5"></stop>
+          <stop offset="0.55" stop-color="#123a6a"></stop>
+          <stop offset="1" stop-color="#0a1f3d"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#logo-bg)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"></rect>
+      <rect x="13.5" y="25" width="6.5" height="14" rx="3.25" fill="#fff" opacity="0.92"></rect>
+      <rect x="23.5" y="18" width="6.5" height="28" rx="3.25" fill="#fff"></rect>
+      <rect x="33.5" y="12" width="6.5" height="40" rx="3.25" fill="#fff"></rect>
+      <rect x="43.5" y="22" width="6.5" height="20" rx="3.25" fill="#fff" opacity="0.92"></rect>
+    </svg>
+    <span class="site-wordmark">SPOTlightIFY</span>
+  </a>
+  <div class="site-bar-right">
+    <span class="site-bar-page">{current.label}</span>
+    <button id="xmb-open" class="menu-btn" type="button" aria-label="Ouvrir le menu">
+      <span class="menu-btn-icon" set:html={iconSvg("menu")} />
+      <span>Menu</span>
+    </button>
+  </div>
+</header>
+
+<nav class="xmb" id="xmb" data-current-index={currentIndex} aria-hidden="true">
   <div class="xmb-bg" aria-hidden="true"></div>
   <div class="xmb-ribbon" aria-hidden="true"></div>
   <div class="xmb-sweep" aria-hidden="true"></div>
 
   <header class="xmb-top">
-    <a class="xmb-brand" href={base}>SPOTlightIFY</a>
+    <span class="xmb-brand">
+      <svg class="site-logo" viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="2" y="2" width="60" height="60" rx="17" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"></rect>
+        <rect x="13.5" y="25" width="6.5" height="14" rx="3.25" fill="#fff" opacity="0.92"></rect>
+        <rect x="23.5" y="18" width="6.5" height="28" rx="3.25" fill="#fff"></rect>
+        <rect x="33.5" y="12" width="6.5" height="40" rx="3.25" fill="#fff"></rect>
+        <rect x="43.5" y="22" width="6.5" height="20" rx="3.25" fill="#fff" opacity="0.92"></rect>
+      </svg>
+      SPOTlightIFY
+    </span>
     <time class="xmb-clock" id="xmb-clock"></time>
   </header>
 
@@ -137,7 +176,7 @@ const clientData = links.map((l) => ({
     <div class="xmb-row" id="xmb-row">
       {
         links.map((link, i) => (
-          <div class="xmb-slot">
+          <div class="xmb-slot" style={`--slot-i: ${i}`}>
             <a
               href={link.href}
               class="xmb-tile"
@@ -158,11 +197,13 @@ const clientData = links.map((l) => ({
     </div>
   </div>
 
-  <a class="xmb-scrollcue" href="#xmb-content" aria-label="Voir le contenu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-  </a>
+  <footer class="xmb-hints" aria-hidden="true">
+    <span><kbd>←</kbd><kbd>→</kbd> naviguer</span>
+    <span><kbd>↑</kbd><kbd>↓</kbd> explorer</span>
+    <span><kbd>⏎</kbd> ouvrir</span>
+    <span><kbd>échap</kbd> fermer</span>
+  </footer>
 </nav>
-<div id="xmb-content"></div>
 
 <script is:inline type="application/json" id="xmb-data" set:html={JSON.stringify(clientData)} />
 
@@ -172,6 +213,7 @@ const clientData = links.map((l) => ({
   const detail = document.getElementById("xmb-detail")!;
   const sublist = document.getElementById("xmb-sublist")!;
   const clockEl = document.getElementById("xmb-clock")!;
+  const openBtn = document.getElementById("xmb-open")!;
   const data = JSON.parse(document.getElementById("xmb-data")!.textContent!) as {
     href: string;
     label: string;
@@ -182,8 +224,11 @@ const clientData = links.map((l) => ({
   const slots = [...row.querySelectorAll<HTMLElement>(".xmb-slot")];
   const tiles = [...row.querySelectorAll<HTMLElement>(".xmb-tile")];
 
+  const LAUNCH_KEY = "xmb-launch";
   let focusIndex = Number(nav.dataset.currentIndex ?? 0);
+  const currentHref = data[focusIndex]!.href;
   let subIndex = 0;
+  let launching = false;
 
   // --- XMB clock ---------------------------------------------------------
   function tickClock() {
@@ -199,6 +244,8 @@ const clientData = links.map((l) => ({
   function anchorX(): number {
     return Math.max(120, nav.clientWidth * 0.3);
   }
+
+  let slideTimer: ReturnType<typeof setTimeout>;
 
   function layout(animate = true) {
     const slotW = slots[0]?.offsetWidth ?? 104;
@@ -217,7 +264,6 @@ const clientData = links.map((l) => ({
       slideTimer = setTimeout(() => row.classList.remove("is-sliding"), 550);
     }
   }
-  let slideTimer: ReturnType<typeof setTimeout>;
 
   // --- Sub-list rendering ------------------------------------------------
   function renderSublist() {
@@ -237,6 +283,10 @@ const clientData = links.map((l) => ({
           <span class="xmb-sub-desc">${item.desc}</span>
         </span>`;
       a.addEventListener("mouseenter", () => selectSub(i));
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        launch(page.href);
+      });
       li.appendChild(a);
       sublist.appendChild(li);
     });
@@ -254,7 +304,6 @@ const clientData = links.map((l) => ({
     tiles.forEach((t, j) => t.classList.toggle("is-focused", j === focusIndex));
     slots.forEach((s, j) => s.classList.toggle("is-focused", j === focusIndex));
     layout(animate);
-    // Restart the cascade animation.
     detail.classList.remove("is-entering");
     void detail.offsetWidth;
     detail.classList.add("is-entering");
@@ -265,18 +314,73 @@ const clientData = links.map((l) => ({
     tile.addEventListener("mouseenter", () => {
       if (i !== focusIndex) setFocus(i);
     });
+    tile.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (i === focusIndex) launch(data[i]!.href);
+      else setFocus(i);
+    });
   });
 
-  // --- Keyboard: PlayStation-style ←/→/↑/↓/Enter -------------------------
-  function navMostlyVisible(): boolean {
-    const r = nav.getBoundingClientRect();
-    return r.bottom > window.innerHeight * 0.5;
+  // --- Open / close / launch --------------------------------------------
+  function isOpen(): boolean {
+    return document.body.classList.contains("xmb-open");
   }
 
+  function openNav() {
+    document.body.classList.add("xmb-open");
+    nav.classList.add("is-open");
+    nav.setAttribute("aria-hidden", "false");
+    setFocus(focusIndex, { animate: false });
+  }
+
+  function closeNav() {
+    document.body.classList.remove("xmb-open");
+    nav.classList.remove("is-open");
+    nav.setAttribute("aria-hidden", "true");
+  }
+
+  function playContentEntrance() {
+    const content = document.getElementById("app-content");
+    if (!content) return;
+    content.classList.remove("content-enter");
+    void content.offsetWidth;
+    content.classList.add("content-enter");
+  }
+
+  function launch(href: string) {
+    if (launching) return;
+    if (href === currentHref) {
+      // Same section: no reload needed, just bring the content forward.
+      closeNav();
+      playContentEntrance();
+      return;
+    }
+    launching = true;
+    sessionStorage.setItem(LAUNCH_KEY, "1");
+    nav.classList.add("is-launching");
+    tiles[focusIndex]?.classList.add("is-launch-tile");
+    setTimeout(() => {
+      window.location.href = href;
+    }, 380);
+  }
+
+  openBtn.addEventListener("click", () => {
+    if (!isOpen()) openNav();
+  });
+
+  // --- Keyboard: PlayStation-style ---------------------------------------
   document.addEventListener("keydown", (e) => {
     const target = e.target as HTMLElement;
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
-    if (!navMostlyVisible()) return;
+
+    if (!isOpen()) {
+      // M reopens the dashboard from the content view.
+      if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        openNav();
+      }
+      return;
+    }
 
     switch (e.key) {
       case "ArrowLeft":
@@ -297,31 +401,214 @@ const clientData = links.map((l) => ({
         break;
       case "Enter":
         e.preventDefault();
-        window.location.href = data[focusIndex]!.href;
+        launch(data[focusIndex]!.href);
+        break;
+      case "Escape":
+        e.preventDefault();
+        closeNav();
+        playContentEntrance();
         break;
     }
   });
 
-  window.addEventListener("resize", () => layout(false));
+  window.addEventListener("resize", () => {
+    if (isOpen()) layout(false);
+  });
 
-  // Initial paint (no slide-in on load, then enable animation).
-  setFocus(focusIndex, { animate: false });
+  // --- Initial state ------------------------------------------------------
+  if (sessionStorage.getItem(LAUNCH_KEY)) {
+    // Arriving from a dashboard launch: land directly on the content,
+    // playing the zoom-to-foreground entrance.
+    sessionStorage.removeItem(LAUNCH_KEY);
+    closeNav();
+    playContentEntrance();
+  } else {
+    openNav();
+  }
 </script>
 
 <style is:global>
   /* is:global because the sub-list is (re)built client-side — Astro's scoped
    * styles only tag server-rendered nodes, so scoping would skip those. All
-   * selectors are namespaced under .xmb / .xmb-* to stay collision-free. */
-  .xmb {
-    position: relative;
-    height: 100dvh;
+   * selectors are namespaced (.xmb*, .site-*, .menu-btn) to stay collision-free. */
+
+  /* --- Slim site bar (content view) -------------------------------------- */
+  .site-bar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    background: color-mix(in srgb, var(--color-page) 72%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--color-border);
+    transition: opacity 0.3s ease;
+  }
+
+  body.xmb-open .site-bar {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .site-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .site-logo {
+    width: 1.6rem;
+    height: 1.6rem;
+    display: block;
+  }
+
+  .site-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .site-bar-page {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .menu-btn:hover {
+    border-color: color-mix(in srgb, var(--color-accent-glow) 55%, var(--color-border));
+    box-shadow: 0 0 16px color-mix(in srgb, var(--color-accent-glow) 25%, transparent);
+  }
+
+  .menu-btn-icon {
+    display: flex;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  /* --- Content recede/entrance ------------------------------------------- */
+  #app-content {
+    transition:
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.55s ease,
+      opacity 0.55s ease;
+    transform-origin: 50% 30%;
+  }
+
+  body.xmb-open {
     overflow: hidden;
+  }
+
+  body.xmb-open #app-content {
+    transform: scale(0.93);
+    filter: blur(16px) brightness(0.6);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  #app-content.content-enter {
+    animation: content-launch 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes content-launch {
+    from {
+      transform: scale(0.9) translateY(26px);
+      filter: blur(18px) brightness(0.65);
+      opacity: 0;
+    }
+    60% {
+      filter: blur(0) brightness(1);
+    }
+    to {
+      transform: scale(1) translateY(0);
+      filter: blur(0) brightness(1);
+      opacity: 1;
+    }
+  }
+
+  /* --- XMB overlay -------------------------------------------------------- */
+  .xmb {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
     display: flex;
     flex-direction: column;
     isolation: isolate;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.05);
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.45s;
   }
 
-  /* --- Background: deep PS3 blue + drifting glow + moving ribbon -------- */
+  .xmb.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Launch: everything melts away while the chosen tile flares. */
+  .xmb.is-launching .xmb-top,
+  .xmb.is-launching .xmb-detail,
+  .xmb.is-launching .xmb-hints,
+  .xmb.is-launching .xmb-tile:not(.is-launch-tile),
+  .xmb.is-launching .xmb-tile-label {
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+
+  .xmb.is-launching {
+    opacity: 0;
+    transform: scale(1.07);
+    transition: opacity 0.42s ease 0.12s, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .xmb-tile.is-launch-tile {
+    animation: tile-launch 0.45s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+  }
+
+  @keyframes tile-launch {
+    0% {
+      transform: scale(1.55);
+    }
+    45% {
+      transform: scale(1.85);
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        0 0 70px 26px rgba(180, 220, 255, 0.95);
+    }
+    100% {
+      transform: scale(2.3);
+      opacity: 0;
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0),
+        0 0 90px 40px rgba(180, 220, 255, 0);
+    }
+  }
+
+  /* --- Background: deep PS3 blue + drifting glow + moving ribbon ---------- */
   .xmb-bg {
     position: absolute;
     inset: 0;
@@ -332,7 +619,6 @@ const clientData = links.map((l) => ({
       linear-gradient(160deg, #0d2c52 0%, #0a2140 45%, #071528 100%);
   }
 
-  /* The PS3 "ribbon": a soft diagonal band drifting slowly across the screen. */
   .xmb-ribbon {
     position: absolute;
     inset: -20%;
@@ -353,7 +639,6 @@ const clientData = links.map((l) => ({
     to { transform: translateX(6%) translateY(2%) rotate(1.5deg); }
   }
 
-  /* Occasional light sweep passing over the whole screen. */
   .xmb-sweep {
     position: absolute;
     inset: 0;
@@ -369,7 +654,7 @@ const clientData = links.map((l) => ({
     85%, 100% { background-position: -60% 0; }
   }
 
-  /* --- Top bar ----------------------------------------------------------- */
+  /* --- Top bar ------------------------------------------------------------ */
   .xmb-top {
     display: flex;
     align-items: center;
@@ -378,10 +663,12 @@ const clientData = links.map((l) => ({
   }
 
   .xmb-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 0.95rem;
-    text-decoration: none;
     color: rgba(255, 255, 255, 0.85);
     letter-spacing: 0.02em;
   }
@@ -393,7 +680,7 @@ const clientData = links.map((l) => ({
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
   }
 
-  /* --- Stage: sliding icon row + detail column --------------------------- */
+  /* --- Stage: sliding icon row + detail column ---------------------------- */
   .xmb-stage {
     position: relative;
     flex: 1;
@@ -420,6 +707,16 @@ const clientData = links.map((l) => ({
     flex-direction: column;
     align-items: center;
     flex-shrink: 0;
+  }
+
+  .xmb.is-open .xmb-slot {
+    animation: slot-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--slot-i) * 55ms);
+  }
+
+  @keyframes slot-in {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .xmb-tile {
@@ -493,7 +790,7 @@ const clientData = links.map((l) => ({
     transform: translateY(0);
   }
 
-  /* --- Detail column under the focused icon ------------------------------ */
+  /* --- Detail column under the focused icon ------------------------------- */
   .xmb-detail {
     position: absolute;
     top: calc(22% + 138px);
@@ -613,32 +910,27 @@ const clientData = links.map((l) => ({
     opacity: 1;
   }
 
-  /* --- Scroll cue -------------------------------------------------------- */
-  .xmb-scrollcue {
-    position: absolute;
-    left: 50%;
-    bottom: 1.25rem;
-    transform: translateX(-50%);
-    width: 2.4rem;
-    height: 2.4rem;
+  /* --- Keyboard hints ----------------------------------------------------- */
+  .xmb-hints {
     display: flex;
-    align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.65);
-    animation: xmb-bounce 2.2s ease-in-out infinite;
+    gap: 1.75rem;
+    padding: 1.25rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
   }
 
-  .xmb-scrollcue svg {
-    width: 1.4rem;
-    height: 1.4rem;
+  .xmb-hints kbd {
+    font-family: var(--font-body);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.1rem 0.4rem;
+    margin-right: 0.3rem;
+    font-size: 0.7rem;
   }
 
-  @keyframes xmb-bounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.65; }
-    50% { transform: translateX(-50%) translateY(7px); opacity: 1; }
-  }
-
-  /* --- Mobile ------------------------------------------------------------ */
+  /* --- Mobile ------------------------------------------------------------- */
   @media (max-width: 640px) {
     .xmb-slot {
       width: 86px;
@@ -653,19 +945,30 @@ const clientData = links.map((l) => ({
     .xmb-detail {
       max-width: 78vw;
     }
+
+    .xmb-hints {
+      display: none;
+    }
   }
 
-  /* --- Reduced motion ---------------------------------------------------- */
+  /* --- Reduced motion ----------------------------------------------------- */
   @media (prefers-reduced-motion: reduce) {
     .xmb-ribbon,
     .xmb-sweep,
-    .xmb-scrollcue,
-    .xmb-tile.is-focused {
-      animation: none;
+    .xmb-tile.is-focused,
+    .xmb.is-open .xmb-slot,
+    .xmb-tile.is-launch-tile {
+      animation: none !important;
     }
 
-    .xmb-row {
+    .xmb,
+    .xmb-row,
+    #app-content {
       transition: none;
+    }
+
+    #app-content.content-enter {
+      animation: none;
     }
 
     .is-entering .xmb-sub {

@@ -21,12 +21,14 @@ const { title } = Astro.props;
   <body>
     <PassphraseGate />
     <SectionNav />
-    <main class="page">
-      <slot />
-    </main>
-    <footer class="page">
-      <p id="build-meta" class="empty-state"></p>
-    </footer>
+    <div id="app-content">
+      <main class="page">
+        <slot />
+      </main>
+      <footer class="page">
+        <p id="build-meta" class="empty-state"></p>
+      </footer>
+    </div>
     <script>
       import { onUnlock } from "../lib/gate.ts";
 
