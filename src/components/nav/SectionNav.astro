@@ -1,23 +1,25 @@
 ---
 const base = import.meta.env.BASE_URL;
 const links = [
-  { href: `${base}`, label: "Overview" },
-  { href: `${base}trends/`, label: "Tendances" },
-  { href: `${base}patterns/`, label: "Patterns" },
-  { href: `${base}sound/`, label: "Son" },
-  { href: `${base}records/`, label: "Records" },
+  { href: `${base}`, label: "overview" },
+  { href: `${base}trends/`, label: "tendances" },
+  { href: `${base}patterns/`, label: "patterns" },
+  { href: `${base}sound/`, label: "son" },
+  { href: `${base}records/`, label: "records" },
 ];
 const currentPath = Astro.url.pathname;
 ---
 
 <nav class="section-nav">
-  <a class="brand" href={base}>SPOTlightIFY</a>
+  <a class="brand" href={base}>
+    <span class="brand-prompt">~/</span>SPOTlightIFY
+  </a>
   <ul>
     {
       links.map((link) => (
         <li>
           <a href={link.href} aria-current={currentPath === link.href ? "page" : undefined}>
-            {link.label}
+            [{link.label}]
           </a>
         </li>
       ))
@@ -34,20 +36,24 @@ const currentPath = Astro.url.pathname;
     margin: 0 auto;
     padding: 1.5rem;
     gap: 1rem;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .brand {
-    font-family: var(--font-display);
     font-weight: 700;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 0.95rem;
     letter-spacing: -0.01em;
+  }
+
+  .brand-prompt {
+    color: var(--color-accent);
   }
 
   .section-nav ul {
     list-style: none;
     display: flex;
-    gap: 1.25rem;
+    gap: 1rem;
     margin: 0;
     padding: 0;
     flex-wrap: wrap;
@@ -57,9 +63,14 @@ const currentPath = Astro.url.pathname;
     text-decoration: none;
     font-size: 0.85rem;
     color: var(--color-text-muted);
+    transition: color 0.15s ease;
+  }
+
+  .section-nav a:hover {
+    color: var(--color-text);
   }
 
   .section-nav a[aria-current="page"] {
-    color: var(--color-text);
+    color: var(--color-accent);
   }
 </style>

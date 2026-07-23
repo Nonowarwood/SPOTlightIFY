@@ -69,7 +69,7 @@ export function renderCalendarHeatmap(container: HTMLElement, days: CalendarDay[
         .attr("y", dayIndex * (CELL + GAP))
         .attr("width", CELL)
         .attr("height", CELL)
-        .attr("rx", 2)
+        .attr("rx", 0)
         .attr("fill", minutes > 0 ? sequentialColor(minutes / maxMinutes) : "var(--color-border)")
         .style("cursor", minutes > 0 ? "pointer" : "default");
 

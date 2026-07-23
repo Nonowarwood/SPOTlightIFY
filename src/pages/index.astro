@@ -6,7 +6,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <section class="hero">
     <div class="hero-glow" aria-hidden="true"></div>
     <p class="section-title">Temps d'écoute total</p>
-    <p id="hero-number" class="hero-number tabular">—</p>
+    <p class="hero-number-row">
+      <span id="hero-number" class="hero-number tabular">—</span><span class="cursor-blink">&nbsp;</span>
+    </p>
     <p id="hero-sub" class="hero-sub"></p>
     <p id="coverage-note" class="coverage-note" hidden></p>
   </section>
@@ -49,8 +51,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </p>
         </div>
         <div class="period-toggle" role="group" aria-label="Période">
-          <button type="button" class="period-btn is-active" data-period="mediumTerm">6 mois</button>
-          <button type="button" class="period-btn" data-period="longTerm">Longue durée</button>
+          <button type="button" class="period-btn is-active" data-period="mediumTerm">[ 6 mois ]</button>
+          <button type="button" class="period-btn" data-period="longTerm">[ longue durée ]</button>
         </div>
       </div>
 
@@ -88,13 +90,25 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     border-radius: 50%;
   }
 
-  .hero-number {
+  .hero-number-row {
+    display: flex;
+    align-items: baseline;
     font-size: clamp(2.75rem, 9vw, 4.5rem);
+    line-height: 1;
+    margin: 0;
+  }
+
+  .hero-number {
     background: var(--gradient-hero);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    line-height: 1;
+  }
+
+  .hero-number-row .cursor-blink {
+    width: 0.45em;
+    height: 0.8em;
+    background: var(--color-accent);
   }
 
   .hero-sub {
@@ -133,29 +147,31 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   .period-toggle {
     display: inline-flex;
-    background: var(--color-card);
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    padding: 3px;
+    gap: 0.5rem;
     flex-shrink: 0;
   }
 
   .period-btn {
     appearance: none;
-    border: none;
     background: transparent;
     color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
     font-size: 0.8rem;
     font-family: var(--font-body);
-    padding: 0.4rem 0.9rem;
-    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .period-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text);
   }
 
   .period-btn.is-active {
-    background: var(--color-cat-1);
-    color: white;
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-page);
   }
 </style>
 
